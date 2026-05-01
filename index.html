@@ -1,0 +1,1294 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>GRE Vault</title>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,600;0,700;1,400&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #080810;
+    --bg2: #0d0d1a;
+    --bg3: #12121f;
+    --border: #1e1e30;
+    --border2: #2a2a40;
+    --gold: #c9a84c;
+    --gold2: #e8d5b0;
+    --green: #6fcf8a;
+    --red: #e07070;
+    --muted: #555570;
+    --muted2: #888899;
+    --text: #e8d5b0;
+    --r: 12px;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+  html, body { height: 100%; background: var(--bg); color: var(--text); font-family: 'Cormorant Garamond', Georgia, serif; overflow-x: hidden; }
+
+  /* ── LOGIN ── */
+  #login-screen {
+    min-height: 100vh; display: flex; flex-direction: column; align-items: center; justify-content: center;
+    padding: 24px; background: var(--bg);
+  }
+  .login-glyph { font-size: 3rem; color: var(--gold); margin-bottom: 12px; }
+  .login-title { font-size: 2.4rem; font-weight: 700; letter-spacing: 0.18em; text-transform: uppercase; color: var(--gold2); }
+  .login-sub { font-size: 0.75rem; color: var(--muted); letter-spacing: 0.15em; text-transform: uppercase; margin-bottom: 40px; }
+  .login-card { background: var(--bg2); border: 1px solid var(--border2); border-radius: 16px; padding: 32px 28px; width: 100%; max-width: 360px; display: flex; flex-direction: column; gap: 16px; }
+  .login-field { display: flex; flex-direction: column; gap: 6px; }
+  .login-label { font-size: 0.65rem; color: var(--muted); letter-spacing: 0.15em; text-transform: uppercase; font-family: 'DM Mono', monospace; }
+  .login-input { background: var(--bg3); border: 1px solid var(--border2); border-radius: 8px; padding: 12px 14px; color: var(--text); font-size: 1rem; font-family: 'DM Mono', monospace; outline: none; transition: border-color 0.2s; }
+  .login-input:focus { border-color: var(--gold); }
+  .login-btn { background: var(--gold); color: #08080e; border: none; border-radius: 10px; padding: 14px; font-size: 1rem; font-weight: 700; font-family: 'Cormorant Garamond', serif; letter-spacing: 0.1em; text-transform: uppercase; cursor: pointer; margin-top: 4px; transition: opacity 0.2s; }
+  .login-btn:active { opacity: 0.8; }
+  .login-err { color: var(--red); font-size: 0.8rem; text-align: center; min-height: 18px; font-family: 'DM Mono', monospace; }
+
+  /* ── SHARED ── */
+  .screen { display: none; min-height: 100vh; flex-direction: column; }
+  .screen.active { display: flex; }
+  .wrap { max-width: 500px; margin: 0 auto; padding: 20px 16px; width: 100%; flex: 1; display: flex; flex-direction: column; }
+
+  /* ── HOME ── */
+  .home-header { text-align: center; padding: 24px 0 20px; }
+  .home-logo { font-size: 1.8rem; font-weight: 700; letter-spacing: 0.2em; color: var(--gold2); text-transform: uppercase; }
+  .home-user { font-size: 0.65rem; color: var(--muted); letter-spacing: 0.12em; font-family: 'DM Mono', monospace; margin-top: 4px; }
+  .stats-row { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-bottom: 24px; }
+  .stat-pill { background: var(--bg2); border: 1px solid var(--border); border-radius: 10px; padding: 12px 8px; text-align: center; }
+  .stat-val { font-size: 1.6rem; font-weight: 700; line-height: 1; }
+  .stat-lbl { font-size: 0.6rem; color: var(--muted); margin-top: 4px; letter-spacing: 0.08em; text-transform: uppercase; font-family: 'DM Mono', monospace; }
+  .mode-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 16px; }
+  .mode-card { background: var(--bg2); border: 1px solid var(--border2); border-radius: 14px; padding: 20px 14px; display: flex; flex-direction: column; align-items: center; gap: 8px; cursor: pointer; transition: border-color 0.2s, background 0.2s; text-align: center; }
+  .mode-card:active { background: var(--bg3); }
+  .mode-icon { font-size: 1.6rem; }
+  .mode-title { font-size: 0.9rem; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; }
+  .mode-desc { font-size: 0.68rem; color: var(--muted2); font-family: 'DM Mono', monospace; }
+  .list-toggle { width: 100%; background: transparent; border: 1px solid var(--border); border-radius: 8px; padding: 10px; color: var(--muted2); cursor: pointer; font-size: 0.82rem; font-family: 'Cormorant Garamond', serif; letter-spacing: 0.05em; margin-bottom: 8px; }
+  .list-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px; margin-bottom: 12px; }
+  .list-btn { background: var(--bg2); border: 1px solid var(--border); border-radius: 8px; padding: 10px 4px; color: var(--text); cursor: pointer; font-size: 0.75rem; font-family: 'Cormorant Garamond', serif; display: flex; flex-direction: column; align-items: center; gap: 2px; transition: border-color 0.2s; }
+  .list-btn:active { border-color: var(--gold); }
+  .list-cnt { color: var(--muted); font-size: 0.62rem; font-family: 'DM Mono', monospace; }
+  .bottom-row { display: flex; gap: 8px; margin-top: auto; padding-top: 12px; }
+  .ghost-btn { flex: 1; background: transparent; border: 1px solid var(--border); border-radius: 8px; padding: 11px; color: var(--muted2); cursor: pointer; font-size: 0.8rem; font-family: 'Cormorant Garamond', serif; }
+  .ghost-btn:active { background: var(--bg2); }
+
+  /* ── SESSION ── */
+  #session-screen { background: var(--bg); }
+  .session-wrap { max-width: 500px; margin: 0 auto; padding: 16px; width: 100%; flex: 1; display: flex; flex-direction: column; }
+  .session-top { display: flex; align-items: center; gap: 10px; margin-bottom: 20px; }
+  .stop-btn { background: transparent; border: 1px solid var(--border2); border-radius: 6px; color: var(--muted); cursor: pointer; padding: 7px 11px; font-size: 0.8rem; font-family: 'DM Mono', monospace; white-space: nowrap; }
+  .stop-btn:active { background: var(--bg2); }
+  .prog-wrap { flex: 1; display: flex; flex-direction: column; gap: 4px; }
+  .prog-track { height: 3px; background: var(--border); border-radius: 2px; overflow: hidden; }
+  .prog-fill { height: 100%; background: linear-gradient(90deg, var(--gold), var(--gold2)); border-radius: 2px; transition: width 0.4s ease; }
+  .prog-text { font-size: 0.65rem; color: var(--muted); text-align: right; font-family: 'DM Mono', monospace; }
+  .list-badge { background: var(--bg2); border: 1px solid var(--border); border-radius: 6px; padding: 4px 8px; font-size: 0.65rem; color: var(--muted); font-family: 'DM Mono', monospace; white-space: nowrap; }
+
+  .flashcard {
+    background: linear-gradient(145deg, #111120, #0d0d1a);
+    border: 1px solid var(--border2);
+    border-radius: 20px;
+    flex: 1; min-height: 260px; max-height: 380px;
+    display: flex; flex-direction: column; justify-content: center; align-items: center;
+    padding: 28px 22px; cursor: pointer;
+    box-shadow: 0 12px 40px rgba(0,0,0,0.7), inset 0 1px 0 rgba(255,255,255,0.04);
+    position: relative; margin-bottom: 14px;
+    transition: transform 0.18s, opacity 0.18s;
+    user-select: none;
+  }
+  .flashcard.slide-right { transform: translateX(110%) rotate(8deg); opacity: 0; }
+  .flashcard.slide-left { transform: translateX(-110%) rotate(-8deg); opacity: 0; }
+  .flashcard.flip-out { opacity: 0; transform: scaleY(0.95); }
+
+  .ant-badge { position: absolute; top: 14px; right: 14px; background: rgba(224,112,112,0.12); border: 1px solid rgba(224,112,112,0.35); border-radius: 4px; padding: 3px 8px; font-size: 0.6rem; color: var(--red); letter-spacing: 0.1em; font-family: 'DM Mono', monospace; }
+  .card-front { display: flex; flex-direction: column; align-items: center; gap: 18px; width: 100%; }
+  .card-word { font-size: clamp(1.8rem, 6vw, 2.4rem); font-weight: 700; text-align: center; color: var(--gold2); letter-spacing: 0.04em; }
+  .card-hint { font-size: 0.65rem; color: var(--border2); letter-spacing: 0.14em; text-transform: uppercase; font-family: 'DM Mono', monospace; }
+  .card-back { display: flex; flex-direction: column; gap: 12px; width: 100%; animation: fadeIn 0.2s ease; }
+  .master-theme { font-size: 0.65rem; letter-spacing: 0.18em; text-transform: uppercase; color: var(--gold); font-weight: 600; text-align: center; background: rgba(201,168,76,0.08); padding: 4px 14px; border-radius: 4px; align-self: center; font-family: 'DM Mono', monospace; }
+  .card-def { font-size: 1.05rem; text-align: center; color: var(--text); line-height: 1.55; }
+  .card-ex { font-size: 0.82rem; color: var(--muted2); text-align: center; font-style: italic; line-height: 1.5; border-top: 1px solid var(--border); padding-top: 12px; }
+
+  .streak-row { text-align: center; font-size: 0.8rem; color: var(--gold); height: 22px; font-family: 'DM Mono', monospace; }
+  .action-row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 6px; }
+  .act-btn { padding: 15px 8px; border-radius: 12px; border: 1px solid; cursor: pointer; font-size: 1rem; font-family: 'Cormorant Garamond', serif; display: flex; flex-direction: column; align-items: center; gap: 4px; transition: opacity 0.1s; font-weight: 700; letter-spacing: 0.05em; }
+  .act-btn:active { opacity: 0.7; }
+  .act-icon { font-size: 1.5rem; line-height: 1; }
+  .wrong-btn { background: rgba(224,112,112,0.08); border-color: var(--red); color: var(--red); }
+  .right-btn { background: rgba(111,207,138,0.08); border-color: var(--green); color: var(--green); }
+  .session-mini { display: flex; justify-content: center; gap: 18px; margin-top: 14px; font-size: 0.85rem; align-items: center; font-family: 'DM Mono', monospace; }
+
+  /* ── SUMMARY ── */
+  .summary-wrap { max-width: 500px; margin: 0 auto; padding: 24px 16px; width: 100%; flex: 1; display: flex; flex-direction: column; }
+  .score-circle { width: 96px; height: 96px; border-radius: 50%; border: 2px solid var(--gold); display: flex; flex-direction: column; align-items: center; justify-content: center; background: var(--bg2); margin: 0 auto 14px; }
+  .score-pct { font-size: 1.8rem; font-weight: 700; color: var(--gold); line-height: 1; }
+  .score-lbl { font-size: 0.6rem; color: var(--muted); letter-spacing: 0.1em; font-family: 'DM Mono', monospace; }
+  .sum-title { text-align: center; font-size: 1.5rem; font-weight: 700; color: var(--gold2); margin-bottom: 4px; }
+  .sum-meta { text-align: center; color: var(--muted2); font-size: 0.85rem; font-family: 'DM Mono', monospace; margin-bottom: 20px; }
+  .missed-box { background: var(--bg2); border: 1px solid var(--border2); border-radius: 12px; padding: 14px; margin-bottom: 18px; flex: 1; overflow: hidden; display: flex; flex-direction: column; }
+  .missed-ttl { font-size: 0.65rem; color: var(--red); letter-spacing: 0.12em; text-transform: uppercase; font-family: 'DM Mono', monospace; margin-bottom: 10px; }
+  .missed-scroll { overflow-y: auto; flex: 1; max-height: 200px; }
+  .missed-item { display: flex; justify-content: space-between; align-items: center; padding: 7px 8px; border-radius: 6px; }
+  .missed-item:nth-child(even) { background: var(--bg3); }
+  .missed-word { font-size: 0.88rem; font-weight: 600; }
+  .missed-theme { font-size: 0.65rem; color: var(--gold); font-family: 'DM Mono', monospace; }
+  .sum-btns { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; margin-top: auto; }
+  .sum-btn { padding: 13px 6px; border-radius: 10px; cursor: pointer; color: var(--text); font-family: 'Cormorant Garamond', serif; font-size: 0.82rem; transition: opacity 0.15s; }
+  .sum-btn:active { opacity: 0.7; }
+
+  /* ── STATS ── */
+  .stats-wrap { max-width: 500px; margin: 0 auto; padding: 16px; width: 100%; flex: 1; display: flex; flex-direction: column; }
+  .stats-hdr { display: flex; align-items: center; gap: 10px; margin-bottom: 16px; padding-top: 8px; }
+  .back-btn { background: transparent; border: 1px solid var(--border); border-radius: 6px; color: var(--muted); cursor: pointer; padding: 7px 12px; font-size: 0.82rem; font-family: 'DM Mono', monospace; }
+  .stats-ttl { flex: 1; font-size: 1.3rem; font-weight: 700; color: var(--gold2); }
+  .filter-row { display: flex; gap: 5px; margin-bottom: 8px; flex-wrap: wrap; }
+  .filter-btn { background: transparent; border: 1px solid var(--border); border-radius: 6px; padding: 5px 10px; color: var(--muted); cursor: pointer; font-size: 0.72rem; font-family: 'DM Mono', monospace; transition: all 0.15s; }
+  .filter-btn.active { background: rgba(201,168,76,0.1); border-color: var(--gold); color: var(--gold); }
+  .sort-row { display: flex; gap: 5px; margin-bottom: 10px; align-items: center; }
+  .sort-lbl { font-size: 0.65rem; color: var(--muted); font-family: 'DM Mono', monospace; }
+  .sort-btn { background: transparent; border: 1px solid var(--border); border-radius: 4px; padding: 3px 8px; color: var(--muted); cursor: pointer; font-size: 0.68rem; font-family: 'DM Mono', monospace; transition: all 0.15s; }
+  .sort-btn.active { background: var(--bg2); border-color: var(--border2); color: var(--text); }
+  .table-wrap { overflow-y: auto; flex: 1; border-radius: 8px; border: 1px solid var(--border); }
+  .t-row { display: flex; align-items: center; padding: 9px 12px; gap: 8px; border-bottom: 1px solid var(--border); }
+  .t-row:last-child { border-bottom: none; }
+  .t-row:nth-child(even) { background: var(--bg3); }
+  .t-word { flex: 0 0 38%; font-size: 0.8rem; font-weight: 600; display: flex; align-items: center; gap: 4px; flex-wrap: wrap; }
+  .t-theme { flex: 1; font-size: 0.65rem; color: var(--muted); font-family: 'DM Mono', monospace; line-height: 1.3; }
+  .t-nums { display: flex; gap: 7px; font-size: 0.72rem; font-family: 'DM Mono', monospace; }
+  .ant-tag { font-size: 0.55rem; background: rgba(224,112,112,0.1); color: var(--red); border: 1px solid rgba(224,112,112,0.3); border-radius: 3px; padding: 1px 4px; }
+  .star-tag { font-size: 0.75rem; }
+
+  @keyframes fadeIn { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: translateY(0); } }
+  @keyframes slideUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+  .anim-in { animation: slideUp 0.3s ease; }
+
+  /* Scrollbar */
+  ::-webkit-scrollbar { width: 4px; }
+  ::-webkit-scrollbar-track { background: var(--bg); }
+  ::-webkit-scrollbar-thumb { background: var(--border2); border-radius: 2px; }
+</style>
+</head>
+<body>
+
+<!-- ── LOGIN ── -->
+<div id="login-screen">
+  <div class="login-glyph">◈</div>
+  <div class="login-title">GRE Vault</div>
+  <div class="login-sub">Your vocabulary fortress</div>
+  <div class="login-card">
+    <div class="login-field">
+      <label class="login-label">Username</label>
+      <input class="login-input" id="inp-user" type="text" autocomplete="username" placeholder="enter username">
+    </div>
+    <div class="login-field">
+      <label class="login-label">Password</label>
+      <input class="login-input" id="inp-pass" type="password" autocomplete="current-password" placeholder="enter password">
+    </div>
+    <div class="login-err" id="login-err"></div>
+    <button class="login-btn" onclick="doLogin()">Enter Vault</button>
+  </div>
+</div>
+
+<!-- ── HOME ── -->
+<div class="screen" id="home-screen">
+  <div class="wrap">
+    <div class="home-header anim-in">
+      <div class="home-logo">◈ GRE Vault</div>
+      <div class="home-user" id="home-user-tag"></div>
+    </div>
+    <div class="stats-row anim-in" id="home-stats"></div>
+    <div class="mode-grid anim-in">
+      <div class="mode-card" onclick="startSession('all')" style="border-color:#c9a84c55">
+        <div class="mode-icon">⚔</div>
+        <div class="mode-title" style="color:var(--gold)">Practice All</div>
+        <div class="mode-desc">All 12 lists, weighted</div>
+      </div>
+      <div class="mode-card" onclick="startSession('weak')" style="border-color:#e0707055">
+        <div class="mode-icon">🎯</div>
+        <div class="mode-title" style="color:var(--red)">Weak Words</div>
+        <div class="mode-desc" id="weak-desc">0 words</div>
+      </div>
+    </div>
+    <button class="list-toggle" onclick="toggleLists()" id="list-toggle-btn">Practice by List ▼</button>
+    <div class="list-grid" id="list-grid" style="display:none"></div>
+    <div class="bottom-row">
+      <button class="ghost-btn" onclick="showScreen('stats-screen'); renderStats()">📊 Scorecard</button>
+      <button class="ghost-btn" onclick="doLogout()">⇥ Logout</button>
+    </div>
+  </div>
+</div>
+
+<!-- ── SESSION ── -->
+<div class="screen" id="session-screen">
+  <div class="session-wrap">
+    <div class="session-top">
+      <button class="stop-btn" onclick="stopSession()">✕ Stop</button>
+      <div class="prog-wrap">
+        <div class="prog-track"><div class="prog-fill" id="prog-fill" style="width:0%"></div></div>
+        <div class="prog-text" id="prog-text">0/0</div>
+      </div>
+      <div class="list-badge" id="sess-list-badge">—</div>
+    </div>
+    <div class="flashcard" id="flashcard" onclick="flipCard()"></div>
+    <div class="streak-row" id="streak-row"></div>
+    <div class="action-row" id="action-row" style="display:none">
+      <button class="act-btn wrong-btn" onclick="markCard(false)">
+        <span class="act-icon">✗</span><span>Missed</span>
+      </button>
+      <button class="act-btn right-btn" onclick="markCard(true)">
+        <span class="act-icon">✓</span><span>Got it</span>
+      </button>
+    </div>
+    <div class="session-mini" id="session-mini">
+      <span style="color:var(--green)">✓ 0</span>
+      <span style="color:var(--muted);font-size:0.65rem">this session</span>
+      <span style="color:var(--red)">✗ 0</span>
+    </div>
+  </div>
+</div>
+
+<!-- ── SUMMARY ── -->
+<div class="screen" id="summary-screen">
+  <div class="summary-wrap" id="summary-content"></div>
+</div>
+
+<!-- ── STATS ── -->
+<div class="screen" id="stats-screen">
+  <div class="stats-wrap">
+    <div class="stats-hdr">
+      <button class="back-btn" onclick="showScreen('home-screen'); renderHome()">← Back</button>
+      <div class="stats-ttl">Scorecard</div>
+      <div style="font-size:0.7rem;color:var(--muted);font-family:'DM Mono',monospace" id="stats-meta"></div>
+    </div>
+    <div class="filter-row" id="filter-row"></div>
+    <div class="sort-row" id="sort-row"></div>
+    <div class="table-wrap" id="stats-table"></div>
+  </div>
+</div>
+
+<script>
+// ═══════════════════════════════════════════
+// CREDENTIALS
+// ═══════════════════════════════════════════
+const CREDS = { "12": "Rohan" };
+const STORAGE_KEY_PREFIX = "gre_vault_v1_";
+
+// ═══════════════════════════════════════════
+// VOCAB DATA — All 12 lists
+// ═══════════════════════════════════════════
+const VOCAB = [
+  // LIST 1
+  {w:"AUGUR/AUGURY",m:"PREDICTION",d:"To predict or be an omen of something",e:"The dark clouds augured a storm ahead.",l:1,x:false},
+  {w:"FORECAST",m:"PREDICTION",d:"To predict a future event or trend",e:"The analyst forecast a rise in oil prices.",l:1,x:false},
+  {w:"FORESIGHT",m:"PREDICTION",d:"The ability to anticipate future events",e:"Her foresight in investing early paid off handsomely.",l:1,x:false},
+  {w:"FORETELL",m:"PREDICTION",d:"To predict what will happen in the future",e:"Ancient oracles claimed to foretell destiny.",l:1,x:false},
+  {w:"PRESAGE",m:"PREDICTION",d:"A sign or warning of a future event",e:"The silence presaged the explosion that followed.",l:1,x:false},
+  {w:"PRESCIENCE",m:"PREDICTION",d:"Knowledge of events before they happen",e:"His prescience about the market crash stunned peers.",l:1,x:false},
+  {w:"PROGNOSIS",m:"PREDICTION",d:"A forecast, especially about illness or outcomes",e:"The doctor's prognosis was cautiously optimistic.",l:1,x:false},
+  {w:"FOREBODE",m:"SIGN/WARNING",d:"To be an advance sign of something bad",e:"The eerie silence foreboded danger.",l:1,x:false},
+  {w:"FORESHADOW",m:"SIGN/WARNING",d:"To hint at something that will happen later",e:"The opening scene foreshadowed the tragic ending.",l:1,x:false},
+  {w:"PORTEND",m:"SIGN/WARNING",d:"To be a sign or warning of a future event",e:"Darkening skies portended a terrible storm.",l:1,x:false},
+  {w:"PORTENT",m:"SIGN/WARNING",d:"A sign of something momentous about to happen",e:"Many saw the earthquake as a portent of worse to come.",l:1,x:false},
+  {w:"PREMONITION",m:"SIGN/WARNING",d:"A strong feeling that something is about to happen",e:"She had a premonition that the trip would go wrong.",l:1,x:false},
+  {w:"OMINOUS",m:"THREATENING",d:"Giving the impression something bad is coming",e:"The general's ominous silence worried his troops.",l:1,x:false},
+  {w:"SINISTER",m:"THREATENING",d:"Suggesting evil or harm",e:"He gave a sinister smile before leaving the room.",l:1,x:false},
+  {w:"ENRAGE",m:"VERY ANGRY",d:"To make extremely angry",e:"The injustice enraged the entire community.",l:1,x:false},
+  {w:"FUME",m:"VERY ANGRY",d:"To be very angry",e:"She fumed silently while waiting for an apology.",l:1,x:false},
+  {w:"GLOWER",m:"VERY ANGRY",d:"To stare with anger or sullenness",e:"He glowered at the rude customer.",l:1,x:false},
+  {w:"IRATE",m:"VERY ANGRY",d:"Feeling extreme anger",e:"The irate customer demanded a full refund.",l:1,x:false},
+  {w:"IRE",m:"VERY ANGRY",d:"Anger; wrath",e:"The unfair verdict drew the ire of the crowd.",l:1,x:false},
+  {w:"LIVID",m:"VERY ANGRY",d:"Furiously angry",e:"She was absolutely livid when she heard the news.",l:1,x:false},
+  {w:"SEETHE",m:"VERY ANGRY",d:"To be intensely upset beneath the surface",e:"He seethed with resentment for years.",l:1,x:false},
+  {w:"WRATH",m:"VERY ANGRY",d:"Extreme, righteous anger",e:"The king's wrath fell upon the traitors.",l:1,x:false},
+  {w:"ADEPT",m:"SKILLFUL",d:"Very skilled or proficient at something",e:"She is adept at navigating complex negotiations.",l:1,x:false},
+  {w:"ADROIT",m:"SKILLFUL",d:"Clever or skillful in using hands or mind",e:"The adroit diplomat avoided the confrontation.",l:1,x:false},
+  {w:"AGILE",m:"SKILLFUL",d:"Able to move or think quickly and easily",e:"An agile mind adapts to new challenges rapidly.",l:1,x:false},
+  {w:"CONSUMMATE",m:"SKILLFUL",d:"Showing great skill; complete",e:"She was a consummate professional in every meeting.",l:1,x:false},
+  {w:"DEFT",m:"SKILLFUL",d:"Neatly skillful and quick in movement",e:"The surgeon's deft hands minimized tissue damage.",l:1,x:false},
+  {w:"DEXTEROUS",m:"SKILLFUL",d:"Skilled, especially with hands",e:"The jeweler's dexterous fingers crafted a flawless ring.",l:1,x:false},
+  {w:"PROFICIENT",m:"SKILLFUL",d:"Competent or skilled in doing something",e:"He became proficient in three languages by age 20.",l:1,x:false},
+  {w:"PROWESS",m:"SKILLFUL",d:"Skill or expertise in a particular activity",e:"Her prowess in mathematics earned her a scholarship.",l:1,x:false},
+  {w:"INEPT",m:"SKILLFUL",d:"Having or showing no skill; clumsy",e:"The inept contractor left the project in ruins.",l:1,x:true},
+  {w:"MALADROIT",m:"SKILLFUL",d:"Ineffective or bungling; clumsy",e:"His maladroit handling of the crisis made things worse.",l:1,x:true},
+  {w:"LIMBER",m:"FLEXIBLE",d:"Lithe and supple; easy to bend",e:"Gymnasts must keep their bodies limber.",l:1,x:false},
+  {w:"LITHE",m:"FLEXIBLE",d:"Thin, supple, and graceful",e:"The lithe dancer moved effortlessly across the stage.",l:1,x:false},
+  {w:"NIMBLE",m:"FLEXIBLE",d:"Quick and light in movement",e:"Nimble fingers flew across the keyboard.",l:1,x:false},
+  {w:"SUPPLE",m:"FLEXIBLE",d:"Bending and moving easily",e:"Yoga keeps the body supple and the mind calm.",l:1,x:false},
+  {w:"CIRCUITOUS",m:"HAVING TWISTS/TURNS",d:"Longer than the most direct route; roundabout",e:"They took a circuitous route to avoid traffic.",l:1,x:false},
+  {w:"CONVOLUTED",m:"HAVING TWISTS/TURNS",d:"Extremely complex and difficult to follow",e:"The convoluted plot confused most viewers.",l:1,x:false},
+  {w:"MEANDER",m:"HAVING TWISTS/TURNS",d:"To follow a winding path",e:"The river meanders through the valley for miles.",l:1,x:false},
+  {w:"SINUOUS",m:"HAVING TWISTS/TURNS",d:"Having many curves; lithe and supple",e:"The sinuous road wound through the mountains.",l:1,x:false},
+  {w:"TORTUOUS",m:"HAVING TWISTS/TURNS",d:"Full of twists and turns; complex",e:"The tortuous path up the cliff tested every hiker.",l:1,x:false},
+  {w:"AGHAST",m:"HORRIFYING/SHOCKING",d:"Filled with horror or shock",e:"She was aghast at the scale of the destruction.",l:1,x:false},
+  {w:"APPALLING",m:"HORRIFYING/SHOCKING",d:"Causing dismay or horror",e:"The living conditions in the camp were appalling.",l:1,x:false},
+  {w:"EGREGIOUS",m:"HORRIFYING/SHOCKING",d:"Outstandingly bad; shocking",e:"His egregious conduct cost him the contract.",l:1,x:false},
+  {w:"GHASTLY",m:"HORRIFYING/SHOCKING",d:"Causing great horror or fear",e:"The accident left a ghastly scene on the road.",l:1,x:false},
+  {w:"HEINOUS",m:"HORRIFYING/SHOCKING",d:"Utterly wicked; atrocious",e:"The heinous act shocked the entire nation.",l:1,x:false},
+  {w:"MONSTROUS",m:"HORRIFYING/SHOCKING",d:"Inhumanly cruel; shockingly wrong",e:"The monstrous betrayal shattered his trust completely.",l:1,x:false},
+  {w:"VILE",m:"HORRIFYING/SHOCKING",d:"Extremely unpleasant; morally wicked",e:"The vile conditions drew international outcry.",l:1,x:false},
+  {w:"AESTHETIC",m:"ATTRACTIVE",d:"Concerned with beauty or pleasing appearance",e:"The architect had a refined aesthetic sensibility.",l:1,x:false},
+  {w:"COMELY",m:"ATTRACTIVE",d:"Pleasant to look at; attractive",e:"Her comely appearance drew attention at every gathering.",l:1,x:false},
+  {w:"BABBLE",m:"FOOLISH TALK",d:"To talk rapidly in a foolish way",e:"He babbled nervously during the entire interview.",l:1,x:false},
+  {w:"BLATHER",m:"FOOLISH TALK",d:"To talk at length without making sense",e:"She blathered on about irrelevant topics for an hour.",l:1,x:false},
+  {w:"DRIVEL",m:"FOOLISH TALK",d:"Nonsense; silly talk or writing",e:"The report was pure drivel, devoid of substance.",l:1,x:false},
+  {w:"GIBBERISH",m:"FOOLISH TALK",d:"Rapid, unintelligible talk or writing",e:"The corrupted file printed as complete gibberish.",l:1,x:false},
+  {w:"PRATTLE",m:"FOOLISH TALK",d:"To talk at length in a foolish way",e:"Children prattle happily without a care.",l:1,x:false},
+  {w:"DIDACTIC",m:"TO DO WITH TEACHING",d:"Intended to teach; morally instructive",e:"His didactic tone put audiences to sleep.",l:1,x:false},
+  {w:"PEDANTIC",m:"TO DO WITH TEACHING",d:"Overly concerned with minor details or rules",e:"His pedantic corrections irritated everyone.",l:1,x:false},
+  {w:"PRODIGY",m:"VERY TALENTED",d:"A person with exceptional natural ability",e:"The chess prodigy became a grandmaster at 14.",l:1,x:false},
+  {w:"PRECOCIOUS",m:"VERY TALENTED",d:"Having abilities at an unusually early age",e:"The precocious child read adult novels at age six.",l:1,x:false},
+  // LIST 2
+  {w:"ABHOR",m:"HATE",d:"To regard with disgust and hatred",e:"She abhors dishonesty in all its forms.",l:2,x:false},
+  {w:"ANIMOSITY",m:"HATE",d:"Strong hostility",e:"There was long-standing animosity between the factions.",l:2,x:false},
+  {w:"ANTIPATHY",m:"HATE",d:"A deep feeling of dislike",e:"His antipathy toward authority shaped his politics.",l:2,x:false},
+  {w:"AVERSION",m:"HATE",d:"A strong dislike or disinclination",e:"She had a deep aversion to conflict of any kind.",l:2,x:false},
+  {w:"DETEST",m:"HATE",d:"To dislike intensely",e:"He detested hypocrisy above all vices.",l:2,x:false},
+  {w:"LOATHE",m:"HATE",d:"To feel intense dislike or disgust for",e:"She loathed the idea of compromising her principles.",l:2,x:false},
+  {w:"REPUGNANT",m:"HATE",d:"Extremely distasteful; unacceptable",e:"The conditions were repugnant to basic human dignity.",l:2,x:false},
+  {w:"ANTEDILUVIAN",m:"OLD FASHIONED/OUTDATED",d:"Ridiculously old-fashioned",e:"His antediluvian views on gender shocked colleagues.",l:2,x:false},
+  {w:"ANTIQUATED",m:"OLD FASHIONED/OUTDATED",d:"Old-fashioned and no longer suitable",e:"The company's antiquated systems slowed everything.",l:2,x:false},
+  {w:"ARCHAIC",m:"OLD FASHIONED/OUTDATED",d:"Very old or old-fashioned",e:"The archaic law remained on the books for centuries.",l:2,x:false},
+  {w:"OBSOLETE",m:"OLD FASHIONED/OUTDATED",d:"No longer produced or used; out of date",e:"Fax machines are now largely obsolete.",l:2,x:false},
+  {w:"QUAINT",m:"OLD FASHIONED/OUTDATED",d:"Attractively unusual or old-fashioned",e:"The village had a quaint charm that tourists loved.",l:2,x:false},
+  {w:"CHARY",m:"CAUTIOUS/CAREFUL",d:"Cautiously reluctant; wary",e:"She was chary of investing in volatile stocks.",l:2,x:false},
+  {w:"CIRCUMSPECT",m:"CAUTIOUS/CAREFUL",d:"Wary and unwilling to take risks",e:"A circumspect leader considers all consequences first.",l:2,x:false},
+  {w:"LEERY",m:"CAUTIOUS/CAREFUL",d:"Cautious or wary due to realistic suspicions",e:"He was leery of signing any contract he hadn't read.",l:2,x:false},
+  {w:"PRUDENT",m:"CAUTIOUS/CAREFUL",d:"Acting with care and thought for the future",e:"The prudent investor diversified her portfolio.",l:2,x:false},
+  {w:"WARY",m:"CAUTIOUS/CAREFUL",d:"Feeling or showing caution about possible dangers",e:"The hikers were wary of the unstable cliff edge.",l:2,x:false},
+  {w:"DAREDEVIL",m:"CAUTIOUS/CAREFUL",d:"A person who enjoys risky activities; reckless",e:"The daredevil stuntman leaped from the burning building.",l:2,x:true},
+  {w:"FOOLHARDY",m:"CAUTIOUS/CAREFUL",d:"Recklessly bold; without thought for danger",e:"It was foolhardy to hike alone in severe weather.",l:2,x:true},
+  {w:"RECKLESS",m:"CAUTIOUS/CAREFUL",d:"Heedless of danger or consequences",e:"Reckless driving causes thousands of deaths each year.",l:2,x:true},
+  {w:"ADMONISH",m:"MINOR SCOLDING/WARNING",d:"To warn or reprimand firmly but gently",e:"The teacher admonished the student for lateness.",l:2,x:false},
+  {w:"CENSURE",m:"MINOR SCOLDING/WARNING",d:"To express strong disapproval of",e:"The senator was censured by the ethics committee.",l:2,x:false},
+  {w:"CHIDE",m:"MINOR SCOLDING/WARNING",d:"To rebuke or scold mildly",e:"Her mother chided her for forgetting again.",l:2,x:false},
+  {w:"REBUKE",m:"MINOR SCOLDING/WARNING",d:"To express sharp disapproval",e:"The coach rebuked the player for the careless foul.",l:2,x:false},
+  {w:"REPRIMAND",m:"MINOR SCOLDING/WARNING",d:"A formal expression of disapproval",e:"He received a written reprimand for the breach.",l:2,x:false},
+  {w:"BERATE",m:"DISAPPROVE/SCOLD",d:"To scold or criticize angrily",e:"The manager berated the team for the missed deadline.",l:2,x:false},
+  {w:"CASTIGATE",m:"DISAPPROVE/SCOLD",d:"To reprimand or punish severely",e:"Critics castigated the film for its poor writing.",l:2,x:false},
+  {w:"DENOUNCE",m:"DISAPPROVE/SCOLD",d:"To publicly declare wrong or evil",e:"Human rights groups denounced the crackdown.",l:2,x:false},
+  {w:"EXCORIATE",m:"DISAPPROVE/SCOLD",d:"To criticize severely",e:"The reviewer excoriated the novel as derivative.",l:2,x:false},
+  {w:"LAMBASTE",m:"DISAPPROVE/SCOLD",d:"To criticize harshly",e:"The opposition lambasted the budget as reckless.",l:2,x:false},
+  {w:"TIRADE",m:"DISAPPROVE/SCOLD",d:"A long, angry speech of criticism",e:"He launched into a tirade against the media.",l:2,x:false},
+  {w:"VITUPERATIVE",m:"DISAPPROVE/SCOLD",d:"Bitter and abusive in language",e:"The vituperative editorial shocked even his critics.",l:2,x:false},
+  {w:"DRUB",m:"TO DEFEAT",d:"To defeat thoroughly; to beat",e:"The home team drubbed their rivals 5-0.",l:2,x:false},
+  {w:"PULVERIZE",m:"TO DEFEAT",d:"To reduce to dust; to defeat decisively",e:"The champion pulverized her opponent in three rounds.",l:2,x:false},
+  {w:"SUBJUGATE",m:"TO DEFEAT",d:"To bring under control or domination",e:"The empire subjugated dozens of smaller nations.",l:2,x:false},
+  {w:"VANQUISH",m:"TO DEFEAT",d:"To defeat thoroughly in battle or conflict",e:"The hero vanquished every enemy he faced.",l:2,x:false},
+  {w:"DISSIDENT",m:"REBELLIOUS/UNCONVENTIONAL",d:"A person who opposes official policy",e:"The dissident was imprisoned for speaking out.",l:2,x:false},
+  {w:"HERESY",m:"REBELLIOUS/UNCONVENTIONAL",d:"Belief contrary to orthodox doctrine",e:"His scientific claims were considered heresy at the time.",l:2,x:false},
+  {w:"HETERODOX",m:"REBELLIOUS/UNCONVENTIONAL",d:"Not conforming to accepted beliefs",e:"Her heterodox views on economics were dismissed.",l:2,x:false},
+  {w:"ICONOCLAST",m:"REBELLIOUS/UNCONVENTIONAL",d:"A person who attacks settled beliefs",e:"The iconoclast challenged every assumption in the field.",l:2,x:false},
+  {w:"MAVERICK",m:"REBELLIOUS/UNCONVENTIONAL",d:"An independent thinker; unconventional",e:"She was a maverick who refused to follow the party line.",l:2,x:false},
+  {w:"RENEGADE",m:"REBELLIOUS/UNCONVENTIONAL",d:"A person who deserts and betrays",e:"The renegade officer shared classified documents.",l:2,x:false},
+  {w:"ACCLAIM",m:"PRAISE",d:"Enthusiastic and public praise",e:"The film received widespread critical acclaim.",l:2,x:false},
+  {w:"ACCOLADE",m:"PRAISE",d:"An award or expression of praise",e:"Winning the prize was the greatest accolade of her career.",l:2,x:false},
+  {w:"EULOGY",m:"PRAISE",d:"A speech of praise, especially at a funeral",e:"His eulogy moved everyone in the hall to tears.",l:2,x:false},
+  {w:"EXTOL",m:"PRAISE",d:"To praise enthusiastically",e:"The critics extolled the novel as a masterpiece.",l:2,x:false},
+  {w:"LAUD",m:"PRAISE",d:"To praise highly",e:"The mayor lauded the firefighters for their bravery.",l:2,x:false},
+  {w:"BELITTLE",m:"MOCK/DISRESPECT",d:"To make someone feel unimportant",e:"He belittled her contributions in every meeting.",l:2,x:false},
+  {w:"DENIGRATE",m:"MOCK/DISRESPECT",d:"To criticize unfairly; to belittle",e:"She denigrated his work without reading it.",l:2,x:false},
+  {w:"DISPARAGE",m:"MOCK/DISRESPECT",d:"To regard as being of little worth",e:"He disparaged the idea before giving it a chance.",l:2,x:false},
+  {w:"LAMPOON",m:"MOCK/DISRESPECT",d:"To publicly criticize by using ridicule",e:"The satirical magazine lampooned the prime minister.",l:2,x:false},
+  {w:"SATIRE",m:"MOCK/DISRESPECT",d:"Using humor to expose or criticize foolishness",e:"The play was a biting satire of corporate greed.",l:2,x:false},
+  {w:"MALEVOLENCE",m:"BITTER FEELINGS/ILL-WILL",d:"The desire to harm others; ill will",e:"His malevolence toward rivals was barely concealed.",l:2,x:false},
+  {w:"MALICE",m:"BITTER FEELINGS/ILL-WILL",d:"The desire to harm another person",e:"The crime was committed with clear malice aforethought.",l:2,x:false},
+  {w:"RANCOR",m:"BITTER FEELINGS/ILL-WILL",d:"Bitterness or resentfulness, especially long-standing",e:"Years of rancor had poisoned their friendship.",l:2,x:false},
+  {w:"VIRULENT",m:"BITTER FEELINGS/ILL-WILL",d:"Extremely severe; bitterly hostile",e:"The virulent criticism destroyed his reputation.",l:2,x:false},
+  // LIST 3
+  {w:"COMMENSURATE",m:"EQUALITY",d:"Corresponding in size or degree; proportionate",e:"Her salary was commensurate with her experience.",l:3,x:false},
+  {w:"PARITY",m:"EQUALITY",d:"The state of being equal or equivalent",e:"The union demanded pay parity with male colleagues.",l:3,x:false},
+  {w:"DISPARATE",m:"EQUALITY",d:"Essentially different in kind; not comparable",e:"The two studies had disparate methodologies.",l:3,x:true},
+  {w:"ACCORD",m:"AGREEMENT/HARMONY",d:"An official agreement; harmony",e:"The two nations signed a historic peace accord.",l:3,x:false},
+  {w:"CONCORD",m:"AGREEMENT/HARMONY",d:"Agreement; harmony between people",e:"The committee worked in concord to finalize the policy.",l:3,x:false},
+  {w:"CONGRUOUS",m:"AGREEMENT/HARMONY",d:"In agreement; compatible",e:"Her actions were congruous with her stated values.",l:3,x:false},
+  {w:"DISCORD",m:"AGREEMENT/HARMONY",d:"Disagreement between people or things",e:"Discord within the team led to poor performance.",l:3,x:true},
+  {w:"DISSONANCE",m:"AGREEMENT/HARMONY",d:"Lack of harmony; inconsistency",e:"Cognitive dissonance made him rationalize his choices.",l:3,x:true},
+  {w:"CHASM",m:"SPLIT/GAP",d:"A deep fissure; a profound difference",e:"A chasm of mistrust divided the two communities.",l:3,x:false},
+  {w:"DICHOTOMY",m:"SPLIT/GAP",d:"A division into two contradictory groups",e:"The dichotomy between rich and poor widened each year.",l:3,x:false},
+  {w:"SCHISM",m:"SPLIT/GAP",d:"A split or division between strongly opposed groups",e:"The schism in the party threatened its unity.",l:3,x:false},
+  {w:"BELLICOSE",m:"AGGRESSIVE/ARGUMENTATIVE",d:"Demonstrating aggression; ready to fight",e:"His bellicose rhetoric alarmed neighboring countries.",l:3,x:false},
+  {w:"BELLIGERENT",m:"AGGRESSIVE/ARGUMENTATIVE",d:"Hostile and aggressive",e:"The belligerent delegate refused every compromise.",l:3,x:false},
+  {w:"CONTENTIOUS",m:"AGGRESSIVE/ARGUMENTATIVE",d:"Causing or likely to cause argument",e:"Capital punishment is a deeply contentious issue.",l:3,x:false},
+  {w:"FRACTIOUS",m:"AGGRESSIVE/ARGUMENTATIVE",d:"Irritable and quarrelsome",e:"The fractious coalition collapsed within months.",l:3,x:false},
+  {w:"PUGNACIOUS",m:"AGGRESSIVE/ARGUMENTATIVE",d:"Eager or quick to argue or fight",e:"The pugnacious lawyer fought every case to the last.",l:3,x:false},
+  {w:"TRUCULENT",m:"AGGRESSIVE/ARGUMENTATIVE",d:"Eager or quick to argue or fight",e:"The truculent student challenged every instruction.",l:3,x:false},
+  {w:"ALTERCATION",m:"ARGUE/FIGHT",d:"A noisy argument or disagreement",e:"The altercation outside the bar drew a crowd.",l:3,x:false},
+  {w:"BICKER",m:"ARGUE/FIGHT",d:"To argue about petty and trivial matters",e:"The siblings bickered constantly during the road trip.",l:3,x:false},
+  {w:"SQUABBLE",m:"ARGUE/FIGHT",d:"To quarrel noisily over a trivial matter",e:"They squabbled over who got the window seat.",l:3,x:false},
+  {w:"ASTOUND",m:"SURPRISE/CONFUSE",d:"To shock or greatly surprise",e:"Her performance astounded even the harshest critics.",l:3,x:false},
+  {w:"BAFFLE",m:"SURPRISE/CONFUSE",d:"To totally bewilder or perplex",e:"The cryptic clue baffled the most experienced detectives.",l:3,x:false},
+  {w:"BEMUSE",m:"SURPRISE/CONFUSE",d:"To puzzle, bewilder, or confuse someone",e:"The abstract art installation bemused most visitors.",l:3,x:false},
+  {w:"FLABBERGASTED",m:"SURPRISE/CONFUSE",d:"Utterly astonished",e:"She was flabbergasted by the unexpected promotion.",l:3,x:false},
+  {w:"NONPLUSSED",m:"SURPRISE/CONFUSE",d:"So surprised as to be unsure how to react",e:"The sudden question left him nonplussed.",l:3,x:false},
+  {w:"OBFUSCATE",m:"SURPRISE/CONFUSE",d:"To make obscure or unclear; to confuse",e:"Legal jargon often obfuscates rather than clarifies.",l:3,x:false},
+  {w:"STUPEFY",m:"SURPRISE/CONFUSE",d:"To make someone unable to think clearly",e:"The sheer scale of the disaster stupefied rescuers.",l:3,x:false},
+  {w:"FAWN",m:"EXCESSIVE FLATTERY",d:"To give servile flattery; to seek favor",e:"Interns fawned over the CEO at every company event.",l:3,x:false},
+  {w:"OBSEQUIOUS",m:"EXCESSIVE FLATTERY",d:"Obedient to an excessive degree; fawning",e:"His obsequious behavior embarrassed his colleagues.",l:3,x:false},
+  {w:"SYCOPHANT",m:"EXCESSIVE FLATTERY",d:"A person who acts obsequiously to gain favor",e:"The board was filled with sycophants who never disagreed.",l:3,x:false},
+  {w:"APLOMB",m:"CALM",d:"Self-confidence or assurance in difficult situations",e:"She handled the crisis with remarkable aplomb.",l:3,x:false},
+  {w:"EQUANIMITY",m:"CALM",d:"Mental calmness in difficult situations",e:"He faced the diagnosis with quiet equanimity.",l:3,x:false},
+  {w:"IMPERTURBABLE",m:"CALM",d:"Unable to be upset or excited; very calm",e:"The imperturbable surgeon never showed stress.",l:3,x:false},
+  {w:"NONCHALANT",m:"CALM",d:"Feeling or appearing casually calm",e:"She gave a nonchalant shrug when asked about the award.",l:3,x:false},
+  {w:"PHLEGMATIC",m:"CALM",d:"Having an unemotional, calm disposition",e:"His phlegmatic nature made him ideal for crisis management.",l:3,x:false},
+  {w:"PLACID",m:"CALM",d:"Not easily upset or excited; pleasantly calm",e:"The placid lake reflected the mountains perfectly.",l:3,x:false},
+  {w:"SERENE",m:"CALM",d:"Calm, peaceful, and untroubled",e:"A serene expression crossed her face during meditation.",l:3,x:false},
+  {w:"STOLID",m:"CALM",d:"Calm and dependable; showing little emotion",e:"A stolid temperament served him well in negotiations.",l:3,x:false},
+  {w:"APATHY",m:"INDIFFERENT",d:"Lack of interest or concern",e:"Voter apathy was at a record high this election.",l:3,x:false},
+  {w:"STOIC",m:"INDIFFERENT",d:"Enduring pain without showing feelings",e:"She remained stoic throughout the grueling ordeal.",l:3,x:false},
+  {w:"DISPASSIONATE",m:"IMPARTIAL",d:"Not influenced by emotion; rational",e:"The committee gave a dispassionate assessment.",l:3,x:false},
+  {w:"EGALITARIAN",m:"IMPARTIAL",d:"Believing in equal rights for all people",e:"The egalitarian policy applied the same rules to everyone.",l:3,x:false},
+  {w:"EQUITABLE",m:"IMPARTIAL",d:"Fair and impartial",e:"An equitable distribution of resources was long overdue.",l:3,x:false},
+  {w:"QUASH",m:"SUPPRESS/END",d:"To put an end to; suppress completely",e:"The government moved swiftly to quash the rebellion.",l:3,x:false},
+  {w:"QUELL",m:"SUPPRESS/END",d:"To put an end to; to calm or suppress",e:"Police were called in to quell the riot.",l:3,x:false},
+  {w:"SUBDUE",m:"SUPPRESS/END",d:"To overcome; to bring under control",e:"He struggled to subdue his anger during the meeting.",l:3,x:false},
+  {w:"AUTOCRAT",m:"DOMINATING",d:"A ruler with absolute power",e:"The autocrat brooked no dissent from his ministers.",l:3,x:false},
+  {w:"DESPOT",m:"DOMINATING",d:"A tyrant; a person with absolute power",e:"The despot ruled through fear and intimidation.",l:3,x:false},
+  {w:"HEGEMONY",m:"DOMINATING",d:"Leadership or dominance of one country over others",e:"The nation's economic hegemony was unquestioned for decades.",l:3,x:false},
+  {w:"TYRANT",m:"DOMINATING",d:"A cruel and oppressive ruler",e:"History remembers him as a tyrant who silenced opposition.",l:3,x:false},
+  // LIST 4
+  {w:"EPHEMERAL",m:"SHORT LIVED",d:"Lasting for a very short time",e:"Fame is often ephemeral in the entertainment industry.",l:4,x:false},
+  {w:"EVANESCENT",m:"SHORT LIVED",d:"Quickly fading or disappearing",e:"The evanescent beauty of cherry blossoms makes them special.",l:4,x:false},
+  {w:"FLEETING",m:"SHORT LIVED",d:"Lasting for a very short time",e:"She caught a fleeting glimpse of the rare bird.",l:4,x:false},
+  {w:"TRANSIENT",m:"SHORT LIVED",d:"Lasting only a short time; temporary",e:"The city has a large transient population of workers.",l:4,x:false},
+  {w:"TRANSITORY",m:"SHORT LIVED",d:"Not permanent; shortly passing",e:"His sadness was transitory; joy returned quickly.",l:4,x:false},
+  {w:"CHRONIC",m:"NEVER ENDING/NON STOP",d:"Persisting for a long time; constantly recurring",e:"He suffered from chronic back pain for years.",l:4,x:false},
+  {w:"INCESSANT",m:"NEVER ENDING/NON STOP",d:"Never stopping; continuing without pause",e:"The incessant noise from construction was maddening.",l:4,x:false},
+  {w:"INEXORABLE",m:"NEVER ENDING/NON STOP",d:"Impossible to stop or prevent",e:"The inexorable advance of technology changes society.",l:4,x:false},
+  {w:"PERENNIAL",m:"NEVER ENDING/NON STOP",d:"Lasting or existing for a long time",e:"Traffic is a perennial problem in this city.",l:4,x:false},
+  {w:"RELENTLESS",m:"NEVER ENDING/NON STOP",d:"Unceasingly intense; never giving up",e:"The team's relentless effort paid off in the finals.",l:4,x:false},
+  {w:"TERMINATE",m:"END/STOP",d:"To bring to an end; to dismiss",e:"The company terminated the contract after the breach.",l:4,x:false},
+  {w:"CULMINATE",m:"END/STOP",d:"To reach a climax or point of highest development",e:"Years of effort culminated in a Nobel Prize.",l:4,x:false},
+  {w:"CEASE",m:"END/STOP",d:"To come to an end; to stop",e:"Hostilities ceased after the ceasefire was signed.",l:4,x:false},
+  {w:"ALLAY",m:"CALM DOWN",d:"To diminish or put at rest fears or suspicions",e:"His reassuring words allayed her anxiety.",l:4,x:false},
+  {w:"ALLEVIATE",m:"CALM DOWN",d:"To make suffering or a problem less severe",e:"The medication alleviated much of her chronic pain.",l:4,x:false},
+  {w:"AMELIORATE",m:"CALM DOWN",d:"To make something bad better",e:"New policies ameliorated conditions for workers.",l:4,x:false},
+  {w:"ASSUAGE",m:"CALM DOWN",d:"To make an unpleasant feeling less intense",e:"A sincere apology did little to assuage her grief.",l:4,x:false},
+  {w:"CONCILIATE",m:"CALM DOWN",d:"To stop someone from being angry; to reconcile",e:"The diplomat worked to conciliate the two parties.",l:4,x:false},
+  {w:"MITIGATE",m:"CALM DOWN",d:"To make less severe, serious, or painful",e:"Planting trees can mitigate the effects of urban heat.",l:4,x:false},
+  {w:"PACIFY",m:"CALM DOWN",d:"To quell the anger of; to bring peace to",e:"Emergency workers tried to pacify the distressed crowd.",l:4,x:false},
+  {w:"PLACATE",m:"CALM DOWN",d:"To make someone less angry by concessions",e:"He sent flowers to placate her after the argument.",l:4,x:false},
+  {w:"PROPITIATE",m:"CALM DOWN",d:"To win or regain favor by doing something pleasing",e:"The tribe offered sacrifices to propitiate the gods.",l:4,x:false},
+  {w:"INDOLENT",m:"LACKING ENERGY/LAZY",d:"Wanting to avoid activity or exertion; lazy",e:"The indolent student rarely attended class.",l:4,x:false},
+  {w:"LACKADAISICAL",m:"LACKING ENERGY/LAZY",d:"Lacking enthusiasm; carelessly lazy",e:"His lackadaisical approach to revision cost him the exam.",l:4,x:false},
+  {w:"LANGUID",m:"LACKING ENERGY/LAZY",d:"Displaying little effort; weak or faint",e:"A languid wave was all he could manage in the heat.",l:4,x:false},
+  {w:"LETHARGIC",m:"LACKING ENERGY/LAZY",d:"Affected by lethargy; sluggish and apathetic",e:"The lethargic team barely challenged their opponents.",l:4,x:false},
+  {w:"TORPID",m:"LACKING ENERGY/LAZY",d:"Mentally or physically inactive; lethargic",e:"The heat left everyone feeling torpid and unmotivated.",l:4,x:false},
+  {w:"ASSIDUOUS",m:"HARD WORKING",d:"Showing great care and perseverance",e:"Her assiduous preparation for exams paid dividends.",l:4,x:false},
+  {w:"DILIGENT",m:"HARD WORKING",d:"Having or showing careful and persistent effort",e:"A diligent worker checks everything twice.",l:4,x:false},
+  {w:"INDUSTRIOUS",m:"HARD WORKING",d:"Diligent and hard-working",e:"The industrious student never missed an assignment.",l:4,x:false},
+  {w:"SEDULOUS",m:"HARD WORKING",d:"Showing dedication and diligence",e:"The sedulous researcher spent years perfecting the study.",l:4,x:false},
+  {w:"BLITHE",m:"HAPPY/JOYOUS",d:"Showing a casual, cheerful indifference",e:"She had a blithe disregard for conventional rules.",l:4,x:false},
+  {w:"EBULLIENT",m:"HAPPY/JOYOUS",d:"Cheerful and full of energy",e:"The ebullient crowd roared when the team scored.",l:4,x:false},
+  {w:"ELATED",m:"HAPPY/JOYOUS",d:"Ecstatically happy",e:"She was elated when she received the acceptance letter.",l:4,x:false},
+  {w:"EUPHORIA",m:"HAPPY/JOYOUS",d:"A feeling of intense happiness or excitement",e:"Winning the championship brought pure euphoria.",l:4,x:false},
+  {w:"EXUBERANT",m:"HAPPY/JOYOUS",d:"Filled with lively energy and excitement",e:"The exuberant children ran through the park.",l:4,x:false},
+  {w:"JOVIAL",m:"HAPPY/JOYOUS",d:"Cheerful and friendly",e:"His jovial manner made him popular at every gathering.",l:4,x:false},
+  {w:"BEREAVED",m:"SAD/DEPRESSED",d:"Suffering the death of a loved one",e:"The bereaved family received hundreds of condolences.",l:4,x:false},
+  {w:"CRESTFALLEN",m:"SAD/DEPRESSED",d:"Sad and disappointed",e:"He looked crestfallen after losing the final.",l:4,x:false},
+  {w:"DEJECTED",m:"SAD/DEPRESSED",d:"Sad and depressed; dispirited",e:"After the rejection, she felt utterly dejected.",l:4,x:false},
+  {w:"DESPONDENT",m:"SAD/DEPRESSED",d:"In low spirits from loss of hope",e:"Months of failure had left him deeply despondent.",l:4,x:false},
+  {w:"LUGUBRIOUS",m:"SAD/DEPRESSED",d:"Looking or sounding sad and dismal",e:"The lugubrious melody of the dirge filled the hall.",l:4,x:false},
+  {w:"MELANCHOLY",m:"SAD/DEPRESSED",d:"A feeling of pensive sadness",e:"A deep melancholy settled over him in winter months.",l:4,x:false},
+  {w:"ARDOR",m:"ENTHUSIASTIC/EXCITED",d:"Enthusiasm or passion",e:"She pursued her research with extraordinary ardor.",l:4,x:false},
+  {w:"AVID",m:"ENTHUSIASTIC/EXCITED",d:"Having or showing enthusiasm; eager",e:"He was an avid reader of military history.",l:4,x:false},
+  {w:"EFFERVESCENT",m:"ENTHUSIASTIC/EXCITED",d:"Vivacious and enthusiastic",e:"Her effervescent personality lit up the entire room.",l:4,x:false},
+  {w:"FERVOR",m:"ENTHUSIASTIC/EXCITED",d:"Intense and passionate feeling",e:"The activist spoke with evangelical fervor.",l:4,x:false},
+  {w:"BANAL",m:"ORDINARY",d:"So lacking in originality as to be boring",e:"The speech was full of banal platitudes.",l:4,x:false},
+  {w:"MUNDANE",m:"ORDINARY",d:"Lacking interest or excitement; dull",e:"He yearned to escape the mundane routine of office life.",l:4,x:false},
+  {w:"PEDESTRIAN",m:"ORDINARY",d:"Lacking inspiration or excitement; dull",e:"The writing was competent but entirely pedestrian.",l:4,x:false},
+  {w:"TRITE",m:"ORDINARY",d:"Overused and consequently lacking impact",e:"The film's trite dialogue underwhelmed critics.",l:4,x:false},
+  {w:"ABSTRUSE",m:"DIFFICULT TO UNDERSTAND",d:"Difficult to understand; obscure",e:"The mathematician's abstruse proof confused most readers.",l:4,x:false},
+  {w:"ARCANE",m:"DIFFICULT TO UNDERSTAND",d:"Known only to a few; mysterious",e:"The contract contained arcane legal clauses.",l:4,x:false},
+  {w:"ESOTERIC",m:"DIFFICULT TO UNDERSTAND",d:"Intended for a small specialized group",e:"His esoteric interests included medieval alchemy.",l:4,x:false},
+  {w:"RECONDITE",m:"DIFFICULT TO UNDERSTAND",d:"Not known by many people; obscure",e:"The scholar specialized in recondite medieval texts.",l:4,x:false},
+  {w:"FOREMOST",m:"CRUCIAL/SIGNIFICANT",d:"Most important, prominent, or advanced",e:"She is the foremost authority on behavioral economics.",l:4,x:false},
+  {w:"IMPERATIVE",m:"CRUCIAL/SIGNIFICANT",d:"Of vital importance; crucial",e:"It is imperative that all safety protocols are followed.",l:4,x:false},
+  {w:"PARAMOUNT",m:"CRUCIAL/SIGNIFICANT",d:"More important than anything else",e:"The safety of passengers is paramount on all flights.",l:4,x:false},
+  {w:"PIVOTAL",m:"CRUCIAL/SIGNIFICANT",d:"Of crucial importance in relation to development",e:"That meeting proved to be a pivotal moment in negotiations.",l:4,x:false},
+  {w:"SALIENT",m:"CRUCIAL/SIGNIFICANT",d:"Most noticeable or important; prominent",e:"He summarized the salient points of the argument.",l:4,x:false},
+  // LIST 5
+  {w:"FORTUITOUS",m:"LUCKY",d:"Happening by chance; lucky",e:"The fortuitous meeting led to a decade-long partnership.",l:5,x:false},
+  {w:"OPPORTUNE",m:"LUCKY",d:"Well-chosen or particularly favorable",e:"His arrival at that opportune moment saved the deal.",l:5,x:false},
+  {w:"PROPITIOUS",m:"LUCKY",d:"Giving or indicating a good chance of success",e:"The calm weather made for a propitious launch day.",l:5,x:false},
+  {w:"SERENDIPITY",m:"LUCKY",d:"The occurrence of events by chance in a happy way",e:"Their meeting was pure serendipity.",l:5,x:false},
+  {w:"HAPLESS",m:"LUCKY",d:"Unfortunate; deserving of pity",e:"The hapless traveler missed every connection.",l:5,x:true},
+  {w:"WRETCHED",m:"LUCKY",d:"In a very unhappy or unfortunate state",e:"The wretched conditions in the camp shocked aid workers.",l:5,x:true},
+  {w:"ADVERSITY",m:"PAIN/SUFFERING",d:"Difficult conditions; misfortune",e:"She showed character by thriving in adversity.",l:5,x:false},
+  {w:"TRIBULATION",m:"PAIN/SUFFERING",d:"A cause of great trouble or suffering",e:"The tribulations of war left lasting scars on the nation.",l:5,x:false},
+  {w:"OPULENT",m:"WEALTHY",d:"Ostentatiously rich and luxurious",e:"The opulent mansion had twenty bedrooms and a ballroom.",l:5,x:false},
+  {w:"AFFLUENT",m:"WEALTHY",d:"Having a great deal of money; wealthy",e:"The affluent suburb had some of the best schools.",l:5,x:false},
+  {w:"ACCRETION",m:"INCREASE",d:"Growth or increase by accumulation",e:"The accretion of small charges added up to a large bill.",l:5,x:false},
+  {w:"AGGRANDIZE",m:"INCREASE",d:"To increase the power or status of",e:"He used every opportunity to aggrandize his reputation.",l:5,x:false},
+  {w:"AUGMENT",m:"INCREASE",d:"To make something greater by adding to it",e:"She took freelance work to augment her income.",l:5,x:false},
+  {w:"PROLIFERATE",m:"INCREASE",d:"To increase rapidly in number",e:"Misinformation proliferated across social media.",l:5,x:false},
+  {w:"AMALGAMATE",m:"COMBINE",d:"To combine or unite to form one entity",e:"The two companies amalgamated into one conglomerate.",l:5,x:false},
+  {w:"COALITION",m:"COMBINE",d:"A temporary alliance for combined action",e:"A coalition of NGOs lobbied for the new law.",l:5,x:false},
+  {w:"SYNTHESIS",m:"COMBINE",d:"The combination of ideas to form a new theory",e:"The report offered a synthesis of the latest research.",l:5,x:false},
+  {w:"CONSTRICT",m:"REDUCE/RESTRICT",d:"To make narrower by squeezing; to restrict",e:"The new rules constricted press freedom.",l:5,x:false},
+  {w:"CURTAIL",m:"REDUCE/RESTRICT",d:"To reduce or limit",e:"Budget cuts curtailed the research program.",l:5,x:false},
+  {w:"DWINDLE",m:"REDUCE/RESTRICT",d:"To diminish gradually",e:"The funds dwindled faster than expected.",l:5,x:false},
+  {w:"WANE",m:"REDUCE/RESTRICT",d:"To decrease in vigor or extent; to decline",e:"His enthusiasm began to wane after repeated setbacks.",l:5,x:false},
+  {w:"ABATE",m:"LESSEN IN INTENSITY",d:"To become less intense or widespread",e:"The storm began to abate by morning.",l:5,x:false},
+  {w:"EBB",m:"LESSEN IN INTENSITY",d:"To gradually decrease; to recede",e:"The crowd's energy began to ebb after midnight.",l:5,x:false},
+  {w:"SUBSIDE",m:"LESSEN IN INTENSITY",d:"To become less intense; to sink lower",e:"The floodwaters finally subsided after three days.",l:5,x:false},
+  {w:"COPIOUS",m:"EXCESS",d:"Abundant in supply; plentiful",e:"She took copious notes throughout the lecture.",l:5,x:false},
+  {w:"MYRIAD",m:"EXCESS",d:"A countless or extremely great number",e:"A myriad of options made the choice overwhelming.",l:5,x:false},
+  {w:"PLETHORA",m:"EXCESS",d:"A large or excessive amount of something",e:"There is a plethora of information available online.",l:5,x:false},
+  {w:"SURFEIT",m:"EXCESS",d:"An excess of something",e:"A surfeit of praise can sometimes demotivate children.",l:5,x:false},
+  {w:"DEARTH",m:"SHORTAGE/LACK OF",d:"A scarcity or lack of something",e:"There is a dearth of affordable housing in the city.",l:5,x:false},
+  {w:"PAUCITY",m:"SHORTAGE/LACK OF",d:"The presence of something in only small quantities",e:"A paucity of evidence made conviction impossible.",l:5,x:false},
+  {w:"DESTITUTE",m:"POOR",d:"Without the basic necessities of life",e:"The war left thousands destitute and homeless.",l:5,x:false},
+  {w:"IMPECUNIOUS",m:"POOR",d:"Having little or no money",e:"The impecunious student survived on rice and lentils.",l:5,x:false},
+  {w:"INDIGENT",m:"POOR",d:"Formal term for poor; lacking basic needs",e:"Free clinics serve the city's indigent population.",l:5,x:false},
+  {w:"MISERLY",m:"UNWILLING TO SPEND",d:"Of or like a miser; reluctant to spend",e:"His miserly approach left the team without resources.",l:5,x:false},
+  {w:"PARSIMONIOUS",m:"UNWILLING TO SPEND",d:"Unwilling to spend; extremely frugal",e:"The parsimonious CEO rejected every expense request.",l:5,x:false},
+  {w:"STINGY",m:"UNWILLING TO SPEND",d:"Unwilling to give or spend; mean",e:"He was stingy with praise, making it all the more valuable.",l:5,x:false},
+  {w:"PRODIGAL",m:"SPEND LAVISHLY/WASTE",d:"Spending money recklessly; wastefully extravagant",e:"The prodigal heir spent his inheritance in a year.",l:5,x:false},
+  {w:"PROFLIGATE",m:"SPEND LAVISHLY/WASTE",d:"Recklessly extravagant or wasteful",e:"Profligate spending led to the company's bankruptcy.",l:5,x:false},
+  {w:"SQUANDER",m:"SPEND LAVISHLY/WASTE",d:"To waste in a reckless manner",e:"He squandered his talent through lack of discipline.",l:5,x:false},
+  {w:"CATEGORICAL",m:"SURE/CERTAIN",d:"Unconditional; without exception",e:"She gave a categorical denial of the allegations.",l:5,x:false},
+  {w:"EMPHATIC",m:"SURE/CERTAIN",d:"Expressing something with forcefulness",e:"He gave an emphatic thumbs-down to the proposal.",l:5,x:false},
+  {w:"INCONTROVERTIBLE",m:"SURE/CERTAIN",d:"Not able to be denied or disputed",e:"The DNA evidence was incontrovertible.",l:5,x:false},
+  {w:"CONTINGENT",m:"SURE/CERTAIN",d:"Dependent on circumstances; not certain",e:"The deal was contingent on regulatory approval.",l:5,x:true},
+  // LIST 6
+  {w:"AVARICE",m:"GREED",d:"Extreme greed for wealth or gain",e:"His avarice led him to embezzle millions.",l:6,x:false},
+  {w:"COVETOUS",m:"GREED",d:"Having a strong desire for something belonging to another",e:"She cast a covetous eye on her colleague's promotion.",l:6,x:false},
+  {w:"RAPACIOUS",m:"GREED",d:"Aggressively greedy",e:"Rapacious developers destroyed the coastal ecosystem.",l:6,x:false},
+  {w:"VORACIOUS",m:"GREED",d:"Wanting or devouring large quantities; greedy",e:"She was a voracious reader, finishing a book each day.",l:6,x:false},
+  {w:"CACOPHONY",m:"OVERLY NOISY",d:"A harsh mixture of sounds",e:"The cacophony of the market was overwhelming.",l:6,x:false},
+  {w:"CLAMOR",m:"OVERLY NOISY",d:"A loud and confused noise; a vehement protest",e:"The clamor outside woke everyone in the building.",l:6,x:false},
+  {w:"DISCORDANT",m:"OVERLY NOISY",d:"Harsh and jarring; lacking harmony",e:"The discordant notes made the piece difficult to enjoy.",l:6,x:false},
+  {w:"VOCIFEROUS",m:"OVERLY NOISY",d:"Making a great or noisy outward display",e:"Vociferous protestors surrounded the parliament building.",l:6,x:false},
+  {w:"CALCULATED",m:"PLANNED",d:"Done with full awareness of consequences; deliberate",e:"His smile was calculated to disarm her suspicion.",l:6,x:false},
+  {w:"DELIBERATE",m:"PLANNED",d:"Done consciously and intentionally",e:"Her choice of words was deliberate and precise.",l:6,x:false},
+  {w:"PREMEDITATED",m:"PLANNED",d:"Thought out or planned beforehand",e:"The court ruled the act was premeditated.",l:6,x:false},
+  {w:"SPONTANEOUS",m:"PLANNED",d:"Occurring without planning; natural",e:"The spontaneous outburst surprised everyone.",l:6,x:true},
+  {w:"IMPROMPTU",m:"PLANNED",d:"Done without preparation",e:"She delivered an impromptu speech that captivated the crowd.",l:6,x:true},
+  {w:"DOGGED",m:"RESOLUTE/DETERMINED",d:"Stubbornly persistent; tenacious",e:"His dogged determination eventually paid off.",l:6,x:false},
+  {w:"INDEFATIGABLE",m:"RESOLUTE/DETERMINED",d:"Persisting tirelessly; never giving up",e:"The indefatigable campaigner worked twenty-hour days.",l:6,x:false},
+  {w:"PERSEVERE",m:"RESOLUTE/DETERMINED",d:"To continue despite difficulty",e:"She persevered through years of rejection before succeeding.",l:6,x:false},
+  {w:"STEADFAST",m:"RESOLUTE/DETERMINED",d:"Resolutely or dutifully firm",e:"He remained steadfast in his commitment to justice.",l:6,x:false},
+  {w:"TENACIOUS",m:"RESOLUTE/DETERMINED",d:"Holding firmly; persistent",e:"A tenacious lawyer never lets a detail slip.",l:6,x:false},
+  {w:"ADAMANT",m:"STUBBORN",d:"Refusing to be persuaded or to change one's mind",e:"She was adamant that the plan would not work.",l:6,x:false},
+  {w:"INCORRIGIBLE",m:"STUBBORN",d:"Not able to be corrected or reformed",e:"The incorrigible troublemaker ignored every warning.",l:6,x:false},
+  {w:"OBDURATE",m:"STUBBORN",d:"Stubbornly refusing to change one's opinion",e:"Despite the evidence, he remained obdurate.",l:6,x:false},
+  {w:"OBSTINATE",m:"STUBBORN",d:"Stubbornly refusing to change",e:"The obstinate mule refused to cross the stream.",l:6,x:false},
+  {w:"RECALCITRANT",m:"STUBBORN",d:"Uncooperative with authority",e:"The recalcitrant prisoner refused all food.",l:6,x:false},
+  {w:"REFRACTORY",m:"STUBBORN",d:"Stubbornly disobedient; hard to manage",e:"The refractory teenager tested every teacher.",l:6,x:false},
+  {w:"ANNUL",m:"CANCEL/TAKE BACK",d:"To declare something legally void",e:"The court annulled the fraudulent contract.",l:6,x:false},
+  {w:"RECANT",m:"CANCEL/TAKE BACK",d:"To take back a previously held belief",e:"Under pressure, he recanted his earlier testimony.",l:6,x:false},
+  {w:"REPUDIATE",m:"CANCEL/TAKE BACK",d:"To refuse to accept; to deny the truth of",e:"She repudiated the accusations in a press statement.",l:6,x:false},
+  {w:"RESCIND",m:"CANCEL/TAKE BACK",d:"To revoke, cancel, or repeal",e:"The CEO rescinded the controversial policy within hours.",l:6,x:false},
+  {w:"REVOKE",m:"CANCEL/TAKE BACK",d:"To officially cancel a decree or license",e:"His driving license was revoked for the third time.",l:6,x:false},
+  {w:"DEFY",m:"TO OBJECT/RESIST",d:"To openly resist or refuse to obey",e:"She defied orders and saved three lives.",l:6,x:false},
+  {w:"DISSENT",m:"TO OBJECT/RESIST",d:"To hold or express opinions different from the majority",e:"One judge registered a dissent from the ruling.",l:6,x:false},
+  {w:"DEMUR",m:"TO OBJECT/RESIST",d:"To raise doubts or objections",e:"He demurred when asked to sign the controversial clause.",l:6,x:false},
+  {w:"ACQUIESCE",m:"ACCEPT/AGREE/GIVE IN",d:"To accept something reluctantly but without protest",e:"She acquiesced to her parents' wishes.",l:6,x:false},
+  {w:"ASSENT",m:"ACCEPT/AGREE/GIVE IN",d:"To express agreement; approval",e:"The board gave its assent to the merger.",l:6,x:false},
+  {w:"CONCEDE",m:"ACCEPT/AGREE/GIVE IN",d:"To admit that something is true; to surrender",e:"He conceded the point after reviewing the evidence.",l:6,x:false},
+  {w:"RELENT",m:"ACCEPT/AGREE/GIVE IN",d:"To become less severe or intense; to yield",e:"After hours of debate, she finally relented.",l:6,x:false},
+  {w:"SUCCUMB",m:"ACCEPT/AGREE/GIVE IN",d:"To yield to a superior force or pressure",e:"He succumbed to temptation and quit his diet.",l:6,x:false},
+  {w:"BELIE",m:"TO PROVE FALSE",d:"To fail to give a true impression of; to contradict",e:"Her calm exterior belied her deep anxiety.",l:6,x:false},
+  {w:"DEBUNK",m:"TO PROVE FALSE",d:"To expose as false",e:"The scientist debunked the myth with clear data.",l:6,x:false},
+  {w:"REFUTE",m:"TO PROVE FALSE",d:"To prove to be wrong or false",e:"She refuted every claim in the opposing brief.",l:6,x:false},
+  {w:"EMINENT",m:"FAMOUS PERSON",d:"Famous and respected within a particular sphere",e:"An eminent historian gave the keynote address.",l:6,x:false},
+  {w:"LUMINARY",m:"FAMOUS PERSON",d:"A person who inspires or influences others",e:"Several luminaries of the tech world attended.",l:6,x:false},
+  // LIST 7
+  {w:"BETRAY",m:"DISLOYALTY",d:"To be disloyal to someone who trusts you",e:"He betrayed his country by selling state secrets.",l:7,x:false},
+  {w:"INSIDIOUS",m:"DISLOYALTY",d:"Proceeding subtly in a harmful way",e:"The insidious spread of corruption went unnoticed for years.",l:7,x:false},
+  {w:"PERFIDY",m:"DISLOYALTY",d:"Deceitfulness; an act of treachery",e:"His perfidy was revealed when the letters were published.",l:7,x:false},
+  {w:"FEALTY",m:"DISLOYALTY",d:"Faithfulness and loyalty",e:"The knights swore fealty to their liege lord.",l:7,x:true},
+  {w:"FIDELITY",m:"DISLOYALTY",d:"Faithfulness to obligations or duties",e:"His fidelity to the original text was praised by scholars.",l:7,x:true},
+  {w:"EMBRYONIC",m:"JUST BEGINNING OR DEVELOPING",d:"In an early stage of development",e:"The startup was still in its embryonic phase.",l:7,x:false},
+  {w:"FLEDGLING",m:"JUST BEGINNING OR DEVELOPING",d:"New and inexperienced; just emerging",e:"The fledgling democracy faced immediate challenges.",l:7,x:false},
+  {w:"INCHOATE",m:"JUST BEGINNING OR DEVELOPING",d:"Just begun and not fully formed",e:"His inchoate ideas needed much more development.",l:7,x:false},
+  {w:"NASCENT",m:"JUST BEGINNING OR DEVELOPING",d:"Just coming into existence; beginning",e:"The nascent AI industry attracted billions in investment.",l:7,x:false},
+  {w:"RUDIMENTARY",m:"JUST BEGINNING OR DEVELOPING",d:"Involving basic principles; undeveloped",e:"He had only a rudimentary understanding of finance.",l:7,x:false},
+  {w:"SEASONED",m:"EXPERIENCED",d:"Accustomed to; having experience",e:"A seasoned negotiator never shows his cards early.",l:7,x:false},
+  {w:"VETERAN",m:"EXPERIENCED",d:"A person with long experience in a field",e:"The veteran journalist had covered six wars.",l:7,x:false},
+  {w:"CONNOISSEUR",m:"EXPERT",d:"An expert judge in matters of taste",e:"A connoisseur can identify a wine's vintage by taste.",l:7,x:false},
+  {w:"VIRTUOSO",m:"EXPERT",d:"A person highly skilled in music or another art",e:"The young violinist was widely considered a virtuoso.",l:7,x:false},
+  {w:"QUIXOTIC",m:"IDEALISTIC",d:"Exceedingly idealistic; impractically romantic",e:"His quixotic plan to house every homeless person was admired.",l:7,x:false},
+  {w:"UTOPIAN",m:"IDEALISTIC",d:"Modeled on or aiming for a perfect society",e:"The commune was a utopian experiment that lasted a decade.",l:7,x:false},
+  {w:"CONTRITE",m:"FEELING GUILTY",d:"Feeling or expressing remorse",e:"He was genuinely contrite after hurting her feelings.",l:7,x:false},
+  {w:"PENITENT",m:"FEELING GUILTY",d:"Feeling sorrow for wrongdoing; repentant",e:"The penitent criminal cooperated fully with authorities.",l:7,x:false},
+  {w:"REMORSE",m:"FEELING GUILTY",d:"Deep regret or guilt for a wrongdoing",e:"She felt deep remorse for her harsh words.",l:7,x:false},
+  {w:"RUEFUL",m:"FEELING GUILTY",d:"Expressing sorrow or regret; wistful",e:"He gave a rueful smile and accepted the blame.",l:7,x:false},
+  {w:"ABEYANCE",m:"GAP",d:"A state of temporary disuse or suspension",e:"The project was held in abeyance pending funding.",l:7,x:false},
+  {w:"HIATUS",m:"GAP",d:"A pause or gap in a sequence or activity",e:"The band went on hiatus after their world tour.",l:7,x:false},
+  {w:"MORATORIUM",m:"GAP",d:"A temporary prohibition of an activity",e:"The UN called for a moratorium on nuclear testing.",l:7,x:false},
+  {w:"RESPITE",m:"GAP",d:"A short period of rest from difficulty",e:"The ceasefire provided a brief respite from the fighting.",l:7,x:false},
+  {w:"ATROPHY",m:"LOSE STRENGTH/WEAKEN",d:"To waste away; to become weaker",e:"Unused muscles atrophy over time.",l:7,x:false},
+  {w:"ENERVATE",m:"LOSE STRENGTH/WEAKEN",d:"To weaken; to drain of energy",e:"The tropical heat enervated the entire expedition team.",l:7,x:false},
+  {w:"ENFEEBLE",m:"LOSE STRENGTH/WEAKEN",d:"To make weak or feeble",e:"Years of illness had enfeebled the once-vigorous statesman.",l:7,x:false},
+  {w:"FLAGGING",m:"LOSE STRENGTH/WEAKEN",d:"Becoming tired or less dynamic",e:"Flagging energy levels led to careless errors.",l:7,x:false},
+  {w:"AMEND",m:"CORRECT/REPAIR",d:"To make minor improvements; to revise",e:"Congress voted to amend the constitution.",l:7,x:false},
+  {w:"ATONE",m:"CORRECT/REPAIR",d:"To make amends for a wrong",e:"He spent years trying to atone for his past mistakes.",l:7,x:false},
+  {w:"EXPIATE",m:"CORRECT/REPAIR",d:"To make amends or reparation for guilt",e:"He sought to expiate his sins through charity.",l:7,x:false},
+  {w:"REDRESS",m:"CORRECT/REPAIR",d:"To remedy or set right; to compensate",e:"The lawsuit sought to redress years of discrimination.",l:7,x:false},
+  {w:"REPARATION",m:"CORRECT/REPAIR",d:"Making amends for a wrong; compensation",e:"Reparations for historical injustices remain debated.",l:7,x:false},
+  {w:"ELUCIDATE",m:"CLEAR",d:"To make clear; to explain",e:"The professor elucidated the theory with examples.",l:7,x:false},
+  {w:"LIMPID",m:"CLEAR",d:"Clear and bright; easily understood",e:"The limpid stream revealed every pebble on its bed.",l:7,x:false},
+  {w:"LUCID",m:"CLEAR",d:"Easily understood; clear",e:"Even in old age, his mind remained lucid and sharp.",l:7,x:false},
+  {w:"PELLUCID",m:"CLEAR",d:"Translucently clear; easily understood",e:"Her pellucid writing made complex science accessible.",l:7,x:false},
+  {w:"AMORPHOUS",m:"UNCLEAR/HAZY",d:"Without a clearly defined shape or form",e:"The plan remained amorphous for weeks.",l:7,x:false},
+  {w:"MURKY",m:"UNCLEAR/HAZY",d:"Dark, dirty, or cloudy; not clearly expressed",e:"The murky water made it impossible to see the bottom.",l:7,x:false},
+  {w:"NEBULOUS",m:"UNCLEAR/HAZY",d:"In the form of a cloud; vague",e:"The committee's nebulous mandate confused everyone.",l:7,x:false},
+  {w:"DILEMMA",m:"DIFFICULTY/CONFUSING SITUATION",d:"A situation requiring a choice between unsatisfactory options",e:"She faced a moral dilemma between loyalty and truth.",l:7,x:false},
+  {w:"PREDICAMENT",m:"DIFFICULTY/CONFUSING SITUATION",d:"A difficult, unpleasant, or embarrassing situation",e:"Missing the last train left him in quite a predicament.",l:7,x:false},
+  {w:"QUANDARY",m:"DIFFICULTY/CONFUSING SITUATION",d:"A state of perplexity or uncertainty",e:"He was in a quandary about which job offer to accept.",l:7,x:false},
+  {w:"DEBAUCHERY",m:"IMMORAL",d:"Excessive indulgence in sensual pleasures",e:"Tales of debauchery surrounded the royal court.",l:7,x:false},
+  {w:"DEPRAVITY",m:"IMMORAL",d:"Moral corruption; wickedness",e:"The regime's depravity shocked international observers.",l:7,x:false},
+  {w:"DISSOLUTE",m:"IMMORAL",d:"Lacking moral restraint; debauched",e:"His dissolute lifestyle led to an early decline.",l:7,x:false},
+  {w:"WAYWARD",m:"IMMORAL",d:"Difficult to control; following one's own capricious will",e:"The wayward teenager eventually found his footing.",l:7,x:false},
+  {w:"FLAWLESS",m:"WITHOUT MISTAKES/PERFECT",d:"Without any blemishes or defects",e:"The gymnast delivered a flawless floor routine.",l:7,x:false},
+  {w:"IMPECCABLE",m:"WITHOUT MISTAKES/PERFECT",d:"In accordance with the highest standards; faultless",e:"Her impeccable timing won the crowd over.",l:7,x:false},
+  {w:"IRREPROACHABLE",m:"WITHOUT MISTAKES/PERFECT",d:"Beyond criticism; faultless",e:"His conduct throughout the inquiry was irreproachable.",l:7,x:false},
+  {w:"PROBITY",m:"WITHOUT MISTAKES/PERFECT",d:"Strong moral principles; honesty and decency",e:"A leader of probity would never misuse public funds.",l:7,x:false},
+  {w:"MONOTONOUS",m:"BORING & REPETITIOUS",d:"Dull, tedious, and repetitious",e:"The monotonous assembly line work numbed his mind.",l:7,x:false},
+  {w:"TEDIOUS",m:"BORING & REPETITIOUS",d:"Too long, slow, or dull",e:"The tedious process of data entry took three hours.",l:7,x:false},
+  // LIST 8
+  {w:"BEDLAM",m:"CHAOS/CONFUSION",d:"A scene of uproar and confusion",e:"The announcement caused absolute bedlam in the room.",l:8,x:false},
+  {w:"PANDEMONIUM",m:"CHAOS/CONFUSION",d:"Wild and noisy disorder; chaos",e:"Pandemonium broke out when the fire alarm sounded.",l:8,x:false},
+  {w:"TUMULTUOUS",m:"CHAOS/CONFUSION",d:"Making a loud, confused noise; excited and disorderly",e:"The tumultuous crowd surged toward the stage.",l:8,x:false},
+  {w:"TURMOIL",m:"CHAOS/CONFUSION",d:"A state of great disturbance or confusion",e:"The country was in political turmoil after the coup.",l:8,x:false},
+  {w:"UPHEAVAL",m:"CHAOS/CONFUSION",d:"A violent or sudden change or disruption",e:"The industrial revolution caused massive social upheaval.",l:8,x:false},
+  {w:"FELON",m:"CRIMINALS/LAW BREAKERS",d:"A person who has committed a felony",e:"The felon was sentenced to twelve years in prison.",l:8,x:false},
+  {w:"MISCREANT",m:"CRIMINALS/LAW BREAKERS",d:"A person who behaves badly or breaks the law",e:"The miscreant was caught on three security cameras.",l:8,x:false},
+  {w:"ROGUE",m:"CRIMINALS/LAW BREAKERS",d:"A dishonest or mischievous person",e:"A rogue trader caused billions in losses.",l:8,x:false},
+  {w:"SCOUNDREL",m:"CRIMINALS/LAW BREAKERS",d:"A dishonest or unscrupulous person",e:"The scoundrel had cheated dozens of investors.",l:8,x:false},
+  {w:"ARTIFICE",m:"CHEAT/DECEIVE",d:"Clever deception; trickery",e:"He relied on artifice rather than genuine talent.",l:8,x:false},
+  {w:"CHICANERY",m:"CHEAT/DECEIVE",d:"The use of trickery to achieve a purpose",e:"The deal was riddled with legal chicanery.",l:8,x:false},
+  {w:"DUPLICITY",m:"CHEAT/DECEIVE",d:"Deceitfulness; double-dealing",e:"His duplicity was only revealed years after the fact.",l:8,x:false},
+  {w:"GUILE",m:"CHEAT/DECEIVE",d:"Sly or cunning intelligence",e:"She navigated office politics with considerable guile.",l:8,x:false},
+  {w:"HOODWINK",m:"CHEAT/DECEIVE",d:"To deceive or trick someone",e:"He hoodwinked investors with false financial reports.",l:8,x:false},
+  {w:"SWINDLE",m:"CHEAT/DECEIVE",d:"To use deception to deprive of money or possessions",e:"The conman swindled retirees out of their savings.",l:8,x:false},
+  {w:"WILY",m:"CHEAT/DECEIVE",d:"Skilled at using tricks; cunning",e:"The wily negotiator always had a backup plan.",l:8,x:false},
+  {w:"ARTLESS",m:"INNOCENT/WITHOUT DECEPTION",d:"Without guile; natural and sincere",e:"Her artless charm made her instantly likable.",l:8,x:false},
+  {w:"CREDULOUS",m:"INNOCENT/WITHOUT DECEPTION",d:"Too willing to believe things; gullible",e:"Credulous investors fell for the obvious scam.",l:8,x:false},
+  {w:"GUILELESS",m:"INNOCENT/WITHOUT DECEPTION",d:"Devoid of guile; honest and straightforward",e:"His guileless manner made him easy to trust.",l:8,x:false},
+  {w:"GULLIBLE",m:"INNOCENT/WITHOUT DECEPTION",d:"Easily deceived or cheated",e:"Gullible shoppers paid three times the market price.",l:8,x:false},
+  {w:"INGENUOUS",m:"INNOCENT/WITHOUT DECEPTION",d:"Innocent and unsuspecting; artless",e:"Her ingenuous response caught the interviewer off guard.",l:8,x:false},
+  {w:"RECAPITULATE",m:"REPEAT",d:"To summarize and state again",e:"At the end, she recapitulated the key findings.",l:8,x:false},
+  {w:"REITERATE",m:"REPEAT",d:"To say something again or repeatedly",e:"He reiterated his point until the board understood.",l:8,x:false},
+  {w:"CALAMITOUS",m:"DISASTER",d:"Involving a disaster or calamity",e:"The calamitous flood destroyed the entire harvest.",l:8,x:false},
+  {w:"CATASTROPHE",m:"DISASTER",d:"An event causing great and sudden damage",e:"The oil spill was an ecological catastrophe.",l:8,x:false},
+  {w:"DEBACLE",m:"DISASTER",d:"A chaotic failure or humiliating fiasco",e:"The product launch was a complete debacle.",l:8,x:false},
+  {w:"APPREHENSIVE",m:"DOUBTFUL",d:"Anxious or fearful about the future",e:"She was apprehensive about her first day at work.",l:8,x:false},
+  {w:"CYNICAL",m:"DOUBTFUL",d:"Believing that people are only motivated by self-interest",e:"Years of disappointment had made him deeply cynical.",l:8,x:false},
+  {w:"DUBIOUS",m:"DOUBTFUL",d:"Hesitating or doubting; not to be relied upon",e:"The evidence supporting the claim was dubious at best.",l:8,x:false},
+  {w:"SKEPTICAL",m:"DOUBTFUL",d:"Not easily convinced; having doubts",e:"Experts were skeptical about the drug's claimed benefits.",l:8,x:false},
+  {w:"EFFULGENT",m:"SHINING",d:"Radiant; splendid",e:"The effulgent sunrise over the Himalayas was breathtaking.",l:8,x:false},
+  {w:"LUMINOUS",m:"SHINING",d:"Full of or shedding light; bright",e:"A luminous full moon lit up the desert landscape.",l:8,x:false},
+  {w:"LUSTROUS",m:"SHINING",d:"Having a sheen or gloss; bright",e:"Her lustrous hair was admired by everyone.",l:8,x:false},
+  {w:"SCINTILLATING",m:"SHINING",d:"Sparkling; brilliantly clever",e:"The professor gave a scintillating lecture on dark matter.",l:8,x:false},
+  {w:"ABSTEMIOUS",m:"SELF CONTROL",d:"Moderate in eating and drinking",e:"His abstemious lifestyle kept him healthy into old age.",l:8,x:false},
+  {w:"ABSTINENCE",m:"SELF CONTROL",d:"The practice of restraining oneself from pleasure",e:"Complete abstinence from alcohol improved her health.",l:8,x:false},
+  {w:"FORBEAR",m:"SELF CONTROL",d:"To restrain oneself from doing something",e:"She forbore from commenting on his poor choice.",l:8,x:false},
+  {w:"TEMPERATE",m:"SELF CONTROL",d:"Showing moderation and self-restraint",e:"His temperate response defused the tense situation.",l:8,x:false},
+  {w:"CONCEIVABLE",m:"PRACTICAL/POSSIBLE",d:"Capable of being imagined or grasped mentally",e:"It was conceivable that the deadline could be met.",l:8,x:false},
+  {w:"PRAGMATIC",m:"PRACTICAL/POSSIBLE",d:"Dealing with things sensibly and realistically",e:"A pragmatic approach is needed to solve this problem.",l:8,x:false},
+  {w:"VIABLE",m:"PRACTICAL/POSSIBLE",d:"Capable of working successfully; feasible",e:"The project was only viable if costs were cut significantly.",l:8,x:false},
+  {w:"ARROGANT",m:"OVERLY PROUD",d:"Having an exaggerated sense of one's own importance",e:"His arrogant dismissal of feedback alienated his team.",l:8,x:false},
+  {w:"BOMBASTIC",m:"OVERLY PROUD",d:"High-sounding but with little meaning",e:"The bombastic speech impressed few informed listeners.",l:8,x:false},
+  {w:"CONCEITED",m:"OVERLY PROUD",d:"Excessively proud of oneself; vain",e:"The conceited actor refused to mingle with extras.",l:8,x:false},
+  {w:"HAUGHTY",m:"OVERLY PROUD",d:"Arrogantly superior",e:"Her haughty manner kept colleagues at a distance.",l:8,x:false},
+  {w:"HUBRIS",m:"OVERLY PROUD",d:"Excessive pride or self-confidence",e:"His hubris led him to underestimate every rival.",l:8,x:false},
+  {w:"POMPOUS",m:"OVERLY PROUD",d:"Affectedly grand, solemn, or self-important",e:"The pompous official kept everyone waiting for an hour.",l:8,x:false},
+  {w:"SUPERCILIOUS",m:"OVERLY PROUD",d:"Behaving as if superior to others",e:"His supercilious tone made him deeply unpopular.",l:8,x:false},
+  {w:"VAINGLORIOUS",m:"OVERLY PROUD",d:"Excessively vain; boastful",e:"The vainglorious general commissioned a statue of himself.",l:8,x:false},
+  {w:"UNASSUMING",m:"OVERLY PROUD",d:"Not wanting attention; modest",e:"Despite her fame, she remained quietly unassuming.",l:8,x:true},
+  {w:"GARRULOUS",m:"TALKATIVE/LOTS OF WORDS",d:"Excessively talkative, especially about trivial things",e:"The garrulous neighbor talked for forty minutes.",l:8,x:false},
+  {w:"LOQUACIOUS",m:"TALKATIVE/LOTS OF WORDS",d:"Tending to talk a great deal; talkative",e:"Her loquacious nature made silences feel uncomfortable.",l:8,x:false},
+  {w:"VERBOSE",m:"TALKATIVE/LOTS OF WORDS",d:"Using or expressed in more words than necessary",e:"His verbose report could have been half the length.",l:8,x:false},
+  {w:"VOLUBLE",m:"TALKATIVE/LOTS OF WORDS",d:"Talking fluently and at length",e:"The voluble candidate rarely gave a direct answer.",l:8,x:false},
+  {w:"BREVITY",m:"SPEAK LESS/FEW WORDS",d:"Concise and exact use of words",e:"Brevity is the soul of wit, as Shakespeare observed.",l:8,x:false},
+  {w:"LACONIC",m:"SPEAK LESS/FEW WORDS",d:"Using very few words",e:"His laconic reply told her everything she needed to know.",l:8,x:false},
+  {w:"RETICENT",m:"SPEAK LESS/FEW WORDS",d:"Not revealing one's thoughts; reserved",e:"He was reticent about sharing personal information.",l:8,x:false},
+  {w:"SUCCINCT",m:"SPEAK LESS/FEW WORDS",d:"Expressed clearly and briefly",e:"A succinct executive summary saves everyone time.",l:8,x:false},
+  {w:"TACITURN",m:"SPEAK LESS/FEW WORDS",d:"Reserved or uncommunicative in speech",e:"The taciturn detective spoke only when absolutely necessary.",l:8,x:false},
+  {w:"ALTRUIST",m:"GENEROUS SUPPORTER",d:"A person who selflessly helps others",e:"The altruist donated anonymously to a hundred causes.",l:8,x:false},
+  {w:"BENEVOLENT",m:"GENEROUS SUPPORTER",d:"Well-meaning and kindly; charitable",e:"The benevolent foundation funded thousands of scholarships.",l:8,x:false},
+  {w:"MAGNANIMOUS",m:"GENEROUS SUPPORTER",d:"Very generous or forgiving",e:"In victory, she was magnanimous toward her opponents.",l:8,x:false},
+  {w:"MUNIFICENT",m:"GENEROUS SUPPORTER",d:"More generous than is usual or necessary",e:"The munificent donor gave an entire wing to the museum.",l:8,x:false},
+  {w:"PHILANTHROPIST",m:"GENEROUS SUPPORTER",d:"A person who donates to charitable causes",e:"The philanthropist funded a new hospital in the region.",l:8,x:false},
+  {w:"AUDACIOUS",m:"LACK OF RESPECT",d:"Showing willingness to take bold risks; recklessly bold",e:"His audacious plan shocked even his supporters.",l:8,x:false},
+  {w:"BRAZEN",m:"LACK OF RESPECT",d:"Bold and shameless",e:"The brazen thief stole from the open display.",l:8,x:false},
+  {w:"IMPERTINENT",m:"LACK OF RESPECT",d:"Not showing proper respect; rude",e:"The impertinent question drew a sharp rebuke.",l:8,x:false},
+  {w:"INSOLENT",m:"LACK OF RESPECT",d:"Showing a rude lack of respect",e:"The insolent employee was dismissed immediately.",l:8,x:false},
+  {w:"TEMERITY",m:"LACK OF RESPECT",d:"Excessive confidence or boldness; audacity",e:"She had the temerity to question the chairman directly.",l:8,x:false},
+  {w:"HYPOCRITICAL",m:"PRETENSE OF MORALITY",d:"Behaving in a way that contradicts stated beliefs",e:"It was hypocritical to preach austerity while overspending.",l:8,x:false},
+  {w:"SANCTIMONIOUS",m:"PRETENSE OF MORALITY",d:"Making a show of being morally superior",e:"His sanctimonious lecture on ethics irritated everyone.",l:8,x:false},
+  // LIST 9
+  {w:"EMULATE",m:"IMITATE",d:"To match or surpass by imitation",e:"Young athletes emulate their sporting heroes.",l:9,x:false},
+  {w:"SIMULATE",m:"IMITATE",d:"To imitate the appearance or character of",e:"The training program simulates real combat conditions.",l:9,x:false},
+  {w:"MIMIC",m:"IMITATE",d:"To imitate, typically for comic effect",e:"The comedian mimicked the president to great effect.",l:9,x:false},
+  {w:"ARBITER",m:"MEDIATOR/LEAD",d:"A person who settles a dispute; an authoritative figure",e:"The arbiter's ruling was final and binding.",l:9,x:false},
+  {w:"MEDIATE",m:"MEDIATOR/LEAD",d:"To intervene between parties to resolve a dispute",e:"The UN was asked to mediate between the two nations.",l:9,x:false},
+  {w:"OFFICIATE",m:"MEDIATOR/LEAD",d:"To perform an official function",e:"A senior judge officiated at the swearing-in ceremony.",l:9,x:false},
+  {w:"DEFERENCE",m:"RESPECT",d:"Polite submission and respect",e:"Students showed deference to the senior professor.",l:9,x:false},
+  {w:"HOMAGE",m:"RESPECT",d:"Special honor or respect shown publicly",e:"The film pays homage to classic Bollywood musicals.",l:9,x:false},
+  {w:"REVERE",m:"RESPECT",d:"To feel deep respect or admiration for",e:"The founder was revered by every employee.",l:9,x:false},
+  {w:"VENERATE",m:"RESPECT",d:"To regard with great respect",e:"The ancient temple was venerated for over a thousand years.",l:9,x:false},
+  {w:"AFFIRM",m:"CONFIRM/DECLARE",d:"To state as a fact; to assert strongly",e:"The court affirmed the lower court's decision.",l:9,x:false},
+  {w:"ASCERTAIN",m:"CONFIRM/DECLARE",d:"To find out definitely; to determine",e:"Investigators worked to ascertain the cause of the crash.",l:9,x:false},
+  {w:"AVOW",m:"CONFIRM/DECLARE",d:"To openly admit or assert",e:"She avowed her commitment to the cause.",l:9,x:false},
+  {w:"PROCLAIM",m:"CONFIRM/DECLARE",d:"To announce officially or publicly",e:"The king proclaimed a national day of celebration.",l:9,x:false},
+  {w:"ABDICATE",m:"GIVE UP",d:"To renounce a position of power or responsibility",e:"The king abdicated in favor of his son.",l:9,x:false},
+  {w:"ABJURE",m:"GIVE UP",d:"To formally renounce a belief or practice",e:"He abjured his former extremist views publicly.",l:9,x:false},
+  {w:"RELINQUISH",m:"GIVE UP",d:"To voluntarily cease to keep or claim",e:"She relinquished her shares to avoid a conflict of interest.",l:9,x:false},
+  {w:"RENOUNCE",m:"GIVE UP",d:"To formally declare the abandonment of",e:"He renounced his citizenship to protest the regime.",l:9,x:false},
+  {w:"LASCIVIOUS",m:"OFFENSIVE/LUSTY",d:"Feeling or revealing a sexual desire",e:"His lascivious remarks made colleagues deeply uncomfortable.",l:9,x:false},
+  {w:"LURID",m:"OFFENSIVE/LUSTY",d:"Unpleasantly vivid; shocking",e:"The lurid details of the scandal sold millions of papers.",l:9,x:false},
+  {w:"SORDID",m:"OFFENSIVE/LUSTY",d:"Involving immoral behavior; dirty",e:"The sordid affair destroyed his political career.",l:9,x:false},
+  {w:"COGITATE",m:"TO THINK DEEPLY",d:"To think deeply about something",e:"He cogitated for days before reaching a decision.",l:9,x:false},
+  {w:"CONTEMPLATE",m:"TO THINK DEEPLY",d:"To look thoughtfully at; to think deeply",e:"She sat by the window, contemplating her next move.",l:9,x:false},
+  {w:"INTROSPECT",m:"TO THINK DEEPLY",d:"To examine one's own thoughts and feelings",e:"After the failure, he introspected for weeks.",l:9,x:false},
+  {w:"MUSE",m:"TO THINK DEEPLY",d:"To be absorbed in thought; to ponder",e:"He mused over the strange coincidence all morning.",l:9,x:false},
+  {w:"PENSIVE",m:"TO THINK DEEPLY",d:"Engaged in deep or serious thought",e:"She gazed out the window with a pensive expression.",l:9,x:false},
+  {w:"RUMINATE",m:"TO THINK DEEPLY",d:"To think deeply about something",e:"He ruminated on the offer for several days.",l:9,x:false},
+  {w:"PRONE",m:"EASILY AFFECTED",d:"Likely to do or suffer from something",e:"The region is prone to flash flooding in summer.",l:9,x:false},
+  {w:"SUSCEPTIBLE",m:"EASILY AFFECTED",d:"Likely to be influenced or harmed by something",e:"Young children are especially susceptible to the virus.",l:9,x:false},
+  {w:"VULNERABLE",m:"EASILY AFFECTED",d:"Susceptible to harm or attack",e:"The elderly are particularly vulnerable in extreme heat.",l:9,x:false},
+  {w:"IMPERVIOUS",m:"EASILY AFFECTED",d:"Not affected by; unable to be penetrated",e:"She appeared impervious to criticism of any kind.",l:9,x:true},
+  {w:"LAX",m:"CARELESS",d:"Not sufficiently strict or careful; negligent",e:"Lax security measures led to the data breach.",l:9,x:false},
+  {w:"NEGLIGENT",m:"CARELESS",d:"Failing to take proper care over something",e:"The negligent contractor cut corners on safety.",l:9,x:false},
+  {w:"REMISS",m:"CARELESS",d:"Lacking care or attention to duty; negligent",e:"It would be remiss of me not to mention the risks.",l:9,x:false},
+  {w:"SLIPSHOD",m:"CARELESS",d:"Characterized by lack of care or effort",e:"The slipshod report was full of errors and omissions.",l:9,x:false},
+  {w:"AFFABLE",m:"FRIENDLY",d:"Easy to talk to; approachable",e:"The affable manager was beloved by his entire team.",l:9,x:false},
+  {w:"AMIABLE",m:"FRIENDLY",d:"Having a pleasant and likable personality",e:"The amiable host ensured everyone felt welcome.",l:9,x:false},
+  {w:"CONVIVIAL",m:"FRIENDLY",d:"Friendly; lively; enjoyable in company",e:"The convivial atmosphere made the dinner a great success.",l:9,x:false},
+  {w:"GREGARIOUS",m:"FRIENDLY",d:"Fond of company; sociable",e:"Her gregarious personality made her a natural networker.",l:9,x:false},
+  {w:"ALOOF",m:"FRIENDLY",d:"Not friendly; cool and distant",e:"He remained aloof from the rest of the team.",l:9,x:true},
+  {w:"EXASPERATE",m:"TO IRRITATE/MAKE ANGRY",d:"To irritate intensely; to frustrate",e:"His constant interruptions exasperated the chairperson.",l:9,x:false},
+  {w:"HARANGUE",m:"TO IRRITATE/MAKE ANGRY",d:"A lengthy, aggressive speech",e:"The manager harangued the team for a full hour.",l:9,x:false},
+  {w:"INFURIATE",m:"TO IRRITATE/MAKE ANGRY",d:"To make extremely angry",e:"His dismissive attitude infuriated the entire committee.",l:9,x:false},
+  {w:"PIQUE",m:"TO IRRITATE/MAKE ANGRY",d:"A feeling of irritation or resentment",e:"Her pique at the slight was evident to everyone.",l:9,x:false},
+  {w:"DIVEST",m:"TAKE AWAY FORCIBLY",d:"To deprive of power or possessions",e:"The court ordered him divested of all assets.",l:9,x:false},
+  {w:"EXPROPRIATE",m:"TAKE AWAY FORCIBLY",d:"To take away from the owner",e:"The government expropriated land for the highway.",l:9,x:false},
+  {w:"USURP",m:"TAKE AWAY FORCIBLY",d:"To take a position illegally or by force",e:"The general usurped power in a midnight coup.",l:9,x:false},
+  {w:"CLANDESTINE",m:"HIDE/COVER/DISGUISE",d:"Kept secret or done secretively",e:"The clandestine meeting was held after midnight.",l:9,x:false},
+  {w:"COVERT",m:"HIDE/COVER/DISGUISE",d:"Not openly acknowledged or displayed",e:"The agency ran covert operations in three countries.",l:9,x:false},
+  {w:"FURTIVE",m:"HIDE/COVER/DISGUISE",d:"Attempting to avoid notice; secretive",e:"His furtive glances around the room raised suspicion.",l:9,x:false},
+  {w:"SURREPTITIOUS",m:"HIDE/COVER/DISGUISE",d:"Kept secret, especially because it is improper",e:"She cast a surreptitious glance at his phone screen.",l:9,x:false},
+  {w:"PERUSE",m:"EXAMINE CAREFULLY",d:"To read carefully or thoroughly",e:"She perused the contract for hours before signing.",l:9,x:false},
+  {w:"SCRUTINIZE",m:"EXAMINE CAREFULLY",d:"To examine very carefully",e:"Auditors scrutinized every transaction in the ledger.",l:9,x:false},
+  {w:"FORMIDABLE",m:"INSPIRING FEAR OR RESPECT",d:"Inspiring fear or respect by impressive strength",e:"She built a formidable reputation as a litigator.",l:9,x:false},
+  {w:"REDOUBTABLE",m:"INSPIRING FEAR OR RESPECT",d:"Formidable; causing fear and respect",e:"The redoubtable general had never lost a battle.",l:9,x:false},
+  {w:"AWE",m:"INSPIRING FEAR OR RESPECT",d:"Reverential respect mixed with fear",e:"The vastness of the universe fills us with awe.",l:9,x:false},
+  {w:"CANTANKEROUS",m:"IRRITABLE",d:"Bad-tempered, argumentative, and uncooperative",e:"The cantankerous landlord refused every repair request.",l:9,x:false},
+  {w:"CHOLERIC",m:"IRRITABLE",d:"Bad-tempered or irritable",e:"His choleric outbursts made staff reluctant to approach him.",l:9,x:false},
+  {w:"CURMUDGEON",m:"IRRITABLE",d:"A bad-tempered or surly person",e:"The old curmudgeon complained about everything.",l:9,x:false},
+  {w:"IRASCIBLE",m:"IRRITABLE",d:"Having a tendency to be easily angered",e:"The irascible professor threw chalk at inattentive students.",l:9,x:false},
+  // LIST 10
+  {w:"BOOR",m:"RUDE",d:"A rough, bad-mannered person",e:"The boor interrupted every speaker at dinner.",l:10,x:false},
+  {w:"BRUSQUE",m:"RUDE",d:"Abrupt or offhand in manner",e:"His brusque dismissal left her speechless.",l:10,x:false},
+  {w:"CURT",m:"RUDE",d:"Rudely brief in speech or manner",e:"A curt reply was all she received after weeks of waiting.",l:10,x:false},
+  {w:"TERSE",m:"RUDE",d:"Sparing in words; abrupt",e:"His terse email gave no indication of what had gone wrong.",l:10,x:false},
+  {w:"ARTICULATE",m:"FLUENT/CLEAR",d:"Having or showing the ability to speak fluently",e:"She was highly articulate when defending her thesis.",l:10,x:false},
+  {w:"COHERENT",m:"FLUENT/CLEAR",d:"Logical and consistent",e:"Despite the pressure, his argument remained coherent.",l:10,x:false},
+  {w:"ELOQUENT",m:"FLUENT/CLEAR",d:"Fluent or persuasive in speaking or writing",e:"The eloquent advocate moved the jury to tears.",l:10,x:false},
+  {w:"ENUNCIATE",m:"FLUENT/CLEAR",d:"To say or pronounce clearly",e:"Presenters must enunciate clearly for large audiences.",l:10,x:false},
+  {w:"ADJOURN",m:"DELAY/POSTPONE",d:"To break off a meeting to be resumed later",e:"The judge adjourned the hearing until Monday.",l:10,x:false},
+  {w:"DEFER",m:"DELAY/POSTPONE",d:"To put off to a later time",e:"She deferred her graduate studies by two years.",l:10,x:false},
+  {w:"PROTRACT",m:"DELAY/POSTPONE",d:"To prolong; to extend in duration",e:"Lengthy cross-examinations protracted the trial for weeks.",l:10,x:false},
+  {w:"PROCRASTINATE",m:"DELAY/POSTPONE",d:"To delay taking action; to put things off",e:"Students who procrastinate often perform poorly in exams.",l:10,x:false},
+  {w:"DILETTANTE",m:"BEGINNER/INEXPERIENCED",d:"A person with amateur interest in the arts",e:"Critics dismissed him as a dilettante with no real expertise.",l:10,x:false},
+  {w:"NOVICE",m:"BEGINNER/INEXPERIENCED",d:"A person new to a skill or belief",e:"As a novice investor, she stuck to index funds.",l:10,x:false},
+  {w:"ROOKIE",m:"BEGINNER/INEXPERIENCED",d:"A new recruit or inexperienced person",e:"The rookie detective made every classic mistake.",l:10,x:false},
+  {w:"CALLOW",m:"IMMATURE",d:"Inexperienced and immature",e:"The callow intern made several costly errors.",l:10,x:false},
+  {w:"PUERILE",m:"IMMATURE",d:"Childishly silly and immature",e:"His puerile jokes annoyed the entire office.",l:10,x:false},
+  {w:"MENDACITY",m:"FALSEHOOD",d:"The tendency to be untruthful",e:"The politician's mendacity was exposed by a leaked memo.",l:10,x:false},
+  {w:"PERJURY",m:"FALSEHOOD",d:"The offense of willfully telling an untruth in court",e:"The witness was charged with perjury after inconsistencies emerged.",l:10,x:false},
+  {w:"PREVARICATION",m:"FALSEHOOD",d:"The action of speaking or acting evasively",e:"His prevarication under questioning angered the committee.",l:10,x:false},
+  {w:"VERACITY",m:"FALSEHOOD",d:"Truthfulness",e:"The journalist's veracity was never questioned.",l:10,x:true},
+  {w:"BLEAK",m:"GLOOMY/DARK",d:"Offering little hope; cold and bare",e:"The economic outlook for the year looked bleak.",l:10,x:false},
+  {w:"GLOOMY",m:"GLOOMY/DARK",d:"Dark or poorly lit; causing despondency",e:"The gloomy forecast dampened investor sentiment.",l:10,x:false},
+  {w:"SOMBER",m:"GLOOMY/DARK",d:"Dark or dull; oppressively solemn",e:"A somber mood hung over the memorial service.",l:10,x:false},
+  {w:"CAPTIVATE",m:"ATTRACT/FASCINATE",d:"To attract and hold the interest or attention of",e:"The speaker captivated the audience for two hours.",l:10,x:false},
+  {w:"ENAMORED",m:"ATTRACT/FASCINATE",d:"Filled with great love or admiration",e:"She was enamored of the idea from the first moment.",l:10,x:false},
+  {w:"ENTHRALL",m:"ATTRACT/FASCINATE",d:"To capture the fascinated attention of",e:"The documentary enthralled viewers across the country.",l:10,x:false},
+  {w:"MESMERIZE",m:"ATTRACT/FASCINATE",d:"To hold the attention of someone completely",e:"The magician mesmerized the crowd with every trick.",l:10,x:false},
+  {w:"EPIDEMIC",m:"WIDESPREAD",d:"A widespread occurrence of something undesirable",e:"An epidemic of youth unemployment swept the continent.",l:10,x:false},
+  {w:"PANDEMIC",m:"WIDESPREAD",d:"Prevalent over a whole country or the world",e:"The pandemic reshaped global travel and trade.",l:10,x:false},
+  {w:"RAMPANT",m:"WIDESPREAD",d:"Spreading or growing unchecked",e:"Corruption was rampant throughout the institution.",l:10,x:false},
+  {w:"AUTHENTIC",m:"GENUINE",d:"Of undisputed origin; genuine",e:"The auction house confirmed the painting was authentic.",l:10,x:false},
+  {w:"LEGITIMATE",m:"GENUINE",d:"Conforming to the law or rules; genuine",e:"She had a legitimate reason for her absence.",l:10,x:false},
+  {w:"VERITABLE",m:"GENUINE",d:"Used for emphasis; actual",e:"The discovery was a veritable treasure trove of fossils.",l:10,x:false},
+  {w:"COUNTERFEIT",m:"GENUINE",d:"Made in exact imitation with intent to deceive; fake",e:"Customs agents seized thousands of counterfeit goods.",l:10,x:true},
+  {w:"CHIVALRY",m:"BRAVE",d:"The medieval knightly code; courteous behavior",e:"He demonstrated chivalry by standing up for the victim.",l:10,x:false},
+  {w:"DAUNTLESS",m:"BRAVE",d:"Showing fearlessness and determination",e:"The dauntless explorer pushed on through the blizzard.",l:10,x:false},
+  {w:"INTREPID",m:"BRAVE",d:"Fearless; adventurous",e:"The intrepid journalist reported from the front lines.",l:10,x:false},
+  {w:"VALIANT",m:"BRAVE",d:"Possessing or showing courage",e:"The valiant soldiers held the position for days.",l:10,x:false},
+  {w:"COY",m:"SHY",d:"Making a pretense of shyness",e:"She gave a coy smile when asked about her new relationship.",l:10,x:false},
+  {w:"DIFFIDENCE",m:"SHY",d:"Modesty and shyness; lack of self-confidence",e:"His diffidence in job interviews cost him opportunities.",l:10,x:false},
+  {w:"TIMID",m:"SHY",d:"Showing lack of courage or confidence; easily frightened",e:"The timid child hid behind her mother at the party.",l:10,x:false},
+  {w:"TIMOROUS",m:"SHY",d:"Easily frightened; timid",e:"The timorous investor sold at the first sign of volatility.",l:10,x:false},
+  {w:"ASPERSION",m:"ACCUSE/DEFAME",d:"An attack on the reputation or integrity of someone",e:"He cast aspersions on her motives without evidence.",l:10,x:false},
+  {w:"DEFAME",m:"ACCUSE/DEFAME",d:"To damage the reputation of by slander or libel",e:"The tabloid defamed the celebrity with fabricated stories.",l:10,x:false},
+  {w:"LIBEL",m:"ACCUSE/DEFAME",d:"A written false statement that is damaging to reputation",e:"He sued the newspaper for libel over the false story.",l:10,x:false},
+  {w:"MALIGN",m:"ACCUSE/DEFAME",d:"To speak evil of; to defame",e:"She was maligned by rivals who feared her success.",l:10,x:false},
+  {w:"SLANDER",m:"ACCUSE/DEFAME",d:"Making false spoken statements damaging to reputation",e:"The slander campaign was traced back to a political rival.",l:10,x:false},
+  {w:"VILIFY",m:"ACCUSE/DEFAME",d:"To speak or write about in an abusively critical way",e:"The media vilified the whistleblower for months.",l:10,x:false},
+  {w:"APOCRYPHAL",m:"FAKE/FALSE/DOUBTFUL",d:"Of doubtful authenticity",e:"The story about the president is almost certainly apocryphal.",l:10,x:false},
+  {w:"ERRONEOUS",m:"FAKE/FALSE/DOUBTFUL",d:"Wrong; incorrect",e:"The report contained several erroneous conclusions.",l:10,x:false},
+  {w:"ERSATZ",m:"FAKE/FALSE/DOUBTFUL",d:"Made or used as a (usually inferior) substitute",e:"The ersatz coffee tasted nothing like the real thing.",l:10,x:false},
+  {w:"FALLACIOUS",m:"FAKE/FALSE/DOUBTFUL",d:"Based on a mistaken belief",e:"His argument rested on a fallacious assumption.",l:10,x:false},
+  {w:"SPURIOUS",m:"FAKE/FALSE/DOUBTFUL",d:"False or fake; not genuine",e:"The document was later revealed to be spurious.",l:10,x:false},
+  // LIST 11
+  {w:"BLEMISH",m:"SPOTTED/STAINED",d:"A small mark or flaw that spoils something",e:"A single blemish on the painting reduced its value.",l:11,x:false},
+  {w:"SULLY",m:"SPOTTED/STAINED",d:"To damage the purity or integrity of; to tarnish",e:"The scandal sullied a previously spotless reputation.",l:11,x:false},
+  {w:"TAINT",m:"SPOTTED/STAINED",d:"To contaminate or pollute; to affect with a bad quality",e:"The discovery of bias tainted the entire research.",l:11,x:false},
+  {w:"TARNISH",m:"SPOTTED/STAINED",d:"To lose or cause to lose luster; to spoil",e:"The corruption allegations tarnished his legacy.",l:11,x:false},
+  {w:"DEFACE",m:"SPOIL/DISFIGURE",d:"To spoil the surface or appearance of",e:"Vandals defaced the historic monument overnight.",l:11,x:false},
+  {w:"MAR",m:"SPOIL/DISFIGURE",d:"To impair the quality of; to damage",e:"A last-minute error marred an otherwise excellent report.",l:11,x:false},
+  {w:"WARP",m:"SPOIL/DISFIGURE",d:"To make or become bent; to distort",e:"Years of resentment had warped his judgment.",l:11,x:false},
+  {w:"ADULTERATE",m:"IMPURE/POISONOUS",d:"To render poorer in quality by adding another substance",e:"The milk was adulterated with water to increase volume.",l:11,x:false},
+  {w:"NOXIOUS",m:"IMPURE/POISONOUS",d:"Harmful, poisonous, or unpleasant",e:"Noxious fumes from the factory affected nearby residents.",l:11,x:false},
+  {w:"TOXIC",m:"IMPURE/POISONOUS",d:"Poisonous; very harmful or unpleasant",e:"The toxic culture at the firm drove away top talent.",l:11,x:false},
+  {w:"VITIATE",m:"IMPURE/POISONOUS",d:"To impair or weaken the quality or efficiency of",e:"Procedural errors vitiated the entire contract.",l:11,x:false},
+  {w:"CATHARSIS",m:"GET RID OF/CLEANSE",d:"The process of releasing strong emotions; purging",e:"Writing the letter provided emotional catharsis.",l:11,x:false},
+  {w:"EXPURGATE",m:"GET RID OF/CLEANSE",d:"To remove matter deemed objectionable",e:"The publisher expurgated the most controversial passages.",l:11,x:false},
+  {w:"PURGE",m:"GET RID OF/CLEANSE",d:"To rid of unwanted things; to cleanse",e:"The new CEO purged the board of its most corrupt members.",l:11,x:false},
+  {w:"INIMITABLE",m:"UNMATCHED/UNIQUE",d:"So good or unusual as to be impossible to copy",e:"Her inimitable style set her apart from every competitor.",l:11,x:false},
+  {w:"PEERLESS",m:"UNMATCHED/UNIQUE",d:"Better than all others; unmatched",e:"The peerless craftsman's work commanded enormous prices.",l:11,x:false},
+  {w:"CAJOLE",m:"PERSUADE",d:"To persuade by flattery or coaxing",e:"He cajoled the client into extending the contract.",l:11,x:false},
+  {w:"COAX",m:"PERSUADE",d:"To persuade gently",e:"She coaxed the frightened animal out of the corner.",l:11,x:false},
+  {w:"COGENT",m:"PERSUADE",d:"Clear, logical, and convincing",e:"She presented a cogent argument that swayed the jury.",l:11,x:false},
+  {w:"WHEEDLE",m:"PERSUADE",d:"To employ endearments or flattery to persuade",e:"He wheedled a discount by complimenting the seller.",l:11,x:false},
+  {w:"COERCION",m:"FORCE/PUT PRESSURE",d:"The practice of persuading by force or threats",e:"The confession was obtained through coercion.",l:11,x:false},
+  {w:"COMPEL",m:"FORCE/PUT PRESSURE",d:"To force or oblige to do something",e:"The evidence compelled the jury to convict.",l:11,x:false},
+  {w:"EXTORT",m:"FORCE/PUT PRESSURE",d:"To obtain by threats or force",e:"The criminal extorted money from small businesses.",l:11,x:false},
+  {w:"GOAD",m:"FORCE/PUT PRESSURE",d:"To provoke or stimulate into action",e:"His rivals goaded him into making a rash decision.",l:11,x:false},
+  {w:"HALLMARK",m:"IMPORTANT MARK",d:"A mark of quality or excellence; a distinctive feature",e:"Integrity is the hallmark of a great leader.",l:11,x:false},
+  {w:"LANDMARK",m:"IMPORTANT MARK",d:"A significant event or discovery",e:"The ruling was a landmark in civil rights history.",l:11,x:false},
+  {w:"MILESTONE",m:"IMPORTANT MARK",d:"A significant stage in development",e:"Crossing a million users was a major milestone.",l:11,x:false},
+  {w:"WATERSHED",m:"IMPORTANT MARK",d:"An event marking a turning point",e:"The revolution was a watershed moment for the region.",l:11,x:false},
+  {w:"APOTHEOSIS",m:"BEST EXAMPLE",d:"The highest point; the perfect example of something",e:"This novel is the apotheosis of his literary career.",l:11,x:false},
+  {w:"ARCHETYPE",m:"BEST EXAMPLE",d:"A very typical example; an original model",e:"He is the archetype of the self-made entrepreneur.",l:11,x:false},
+  {w:"EPITOME",m:"BEST EXAMPLE",d:"A perfect example of a particular quality",e:"She is the epitome of grace under pressure.",l:11,x:false},
+  {w:"PARAGON",m:"BEST EXAMPLE",d:"A person or thing regarded as a perfect example",e:"The mentor was a paragon of patience and wisdom.",l:11,x:false},
+  {w:"ACUITY",m:"INTELLIGENT/WISE",d:"Sharpness; keenness of thought or vision",e:"His financial acuity helped the firm avoid the crash.",l:11,x:false},
+  {w:"ACUMEN",m:"INTELLIGENT/WISE",d:"The ability to make good judgments; shrewdness",e:"Her business acumen built an empire from scratch.",l:11,x:false},
+  {w:"ASTUTE",m:"INTELLIGENT/WISE",d:"Having an ability to accurately assess situations",e:"An astute observer noticed the contradiction immediately.",l:11,x:false},
+  {w:"DISCERNING",m:"INTELLIGENT/WISE",d:"Having or showing good judgment",e:"A discerning reader will spot the flaws in the argument.",l:11,x:false},
+  {w:"PERSPICACIOUS",m:"INTELLIGENT/WISE",d:"Having a ready insight into things; shrewd",e:"The perspicacious analyst predicted the crash six months early.",l:11,x:false},
+  {w:"SAGACIOUS",m:"INTELLIGENT/WISE",d:"Having good judgment; wise",e:"The sagacious elder advised patience over haste.",l:11,x:false},
+  {w:"SAVANT",m:"INTELLIGENT/WISE",d:"A person of profound learning",e:"The savant could solve complex equations in seconds.",l:11,x:false},
+  {w:"SECULAR",m:"NOT SACRED/WORLDLY",d:"Not connected with religious matters",e:"The school followed a secular curriculum.",l:11,x:false},
+  {w:"TEMPORAL",m:"NOT SACRED/WORLDLY",d:"Relating to worldly rather than spiritual matters",e:"The monastery separated temporal and spiritual concerns.",l:11,x:false},
+  {w:"INTRINSIC",m:"INBORN/FIRMLY FIXED",d:"Belonging naturally; essential",e:"Empathy is an intrinsic quality of great leaders.",l:11,x:false},
+  {w:"INNATE",m:"INBORN/FIRMLY FIXED",d:"Inborn; natural",e:"The child showed innate musical talent from infancy.",l:11,x:false},
+  {w:"INHERENT",m:"INBORN/FIRMLY FIXED",d:"Existing as an essential characteristic",e:"Risk is inherent in any entrepreneurial venture.",l:11,x:false},
+  {w:"CONGENITAL",m:"INBORN/FIRMLY FIXED",d:"Present from birth; ingrained",e:"His congenital optimism was impossible to dampen.",l:11,x:false},
+  {w:"CONTRIVED",m:"ARTIFICIAL/PRETENSE",d:"Deliberately created; not arising naturally",e:"The reconciliation scene felt contrived and forced.",l:11,x:false},
+  {w:"MANNERED",m:"ARTIFICIAL/PRETENSE",d:"Behaving in an affected way",e:"His mannered performance divided the critics.",l:11,x:false},
+  {w:"PRETENTIOUS",m:"ARTIFICIAL/PRETENSE",d:"Attempting to impress by affecting greater importance",e:"The pretentious restaurant charged a premium for tap water.",l:11,x:false},
+  {w:"BESEECH",m:"FLATTER/BEG",d:"To ask urgently and fervently",e:"She beseeched the judge for leniency.",l:11,x:false},
+  {w:"IMPLORE",m:"FLATTER/BEG",d:"To beg someone earnestly",e:"He implored her not to leave before they could talk.",l:11,x:false},
+  {w:"SUPPLICATE",m:"FLATTER/BEG",d:"To ask or beg for something earnestly",e:"The citizens supplicated the king for lower taxes.",l:11,x:false},
+  {w:"ASININE",m:"STUPID/FOOLISH",d:"Extremely stupid or foolish",e:"The asinine policy was reversed within a week.",l:11,x:false},
+  {w:"FATUOUS",m:"STUPID/FOOLISH",d:"Silly and pointless",e:"His fatuous remarks at the meeting wasted everyone's time.",l:11,x:false},
+  {w:"IMBECILE",m:"STUPID/FOOLISH",d:"A stupid person",e:"Only an imbecile would ignore such clear warning signs.",l:11,x:false},
+  {w:"OBTUSE",m:"STUPID/FOOLISH",d:"Annoyingly insensitive or slow to understand",e:"He was being deliberately obtuse in his responses.",l:11,x:false},
+  {w:"ASTRAY",m:"GO OFF-TRACK",d:"Away from the correct path or direction",e:"The investigation was led astray by false evidence.",l:11,x:false},
+  {w:"DESULTORY",m:"GO OFF-TRACK",d:"Lacking a plan or enthusiasm; random",e:"The desultory conversation revealed no real connection.",l:11,x:false},
+  {w:"DIGRESS",m:"GO OFF-TRACK",d:"To leave the main subject temporarily",e:"The speaker constantly digressed, testing the audience's patience.",l:11,x:false},
+  {w:"TANGENTIAL",m:"GO OFF-TRACK",d:"Diverging from previous course; only peripheral",e:"His comments were tangential to the main argument.",l:11,x:false},
+  {w:"DOUR",m:"SULKING/BAD-TEMPERED",d:"Relentlessly severe, stern, or gloomy",e:"The dour headmaster rarely smiled at his students.",l:11,x:false},
+  {w:"MOROSE",m:"SULKING/BAD-TEMPERED",d:"Sullen and ill-tempered",e:"He grew morose after the repeated setbacks.",l:11,x:false},
+  {w:"PEEVISH",m:"SULKING/BAD-TEMPERED",d:"Easily irritated by unimportant things; petulant",e:"The peevish client complained about every minor detail.",l:11,x:false},
+  {w:"PETULANT",m:"SULKING/BAD-TEMPERED",d:"Childishly sulky or bad-tempered",e:"His petulant refusal to cooperate stalled the project.",l:11,x:false},
+  {w:"SULLEN",m:"SULKING/BAD-TEMPERED",d:"Bad-tempered and sulky",e:"The sullen teenager barely acknowledged anyone at the party.",l:11,x:false},
+  // LIST 12
+  {w:"MINUSCULE",m:"SMALL",d:"Extremely small; tiny",e:"The difference in performance was minuscule.",l:12,x:false},
+  {w:"INFINITESIMAL",m:"SMALL",d:"Extremely small; too small to measure",e:"The chance of error was infinitesimal.",l:12,x:false},
+  {w:"DIMINUTIVE",m:"SMALL",d:"Extremely or unusually small",e:"The diminutive CEO commanded outsized authority.",l:12,x:false},
+  {w:"BEHEMOTH",m:"HUGE/BIG",d:"A huge or monstrous creature; anything enormous",e:"The tech behemoth dominated every market it entered.",l:12,x:false},
+  {w:"GARGANTUAN",m:"HUGE/BIG",d:"Enormous; gigantic",e:"The gargantuan project required ten thousand workers.",l:12,x:false},
+  {w:"MAMMOTH",m:"HUGE/BIG",d:"Very large",e:"The mammoth infrastructure bill passed after months of debate.",l:12,x:false},
+  {w:"MONOLITHIC",m:"HUGE/BIG",d:"Large, powerful, and intractable",e:"The monolithic state broadcaster controlled public opinion.",l:12,x:false},
+  {w:"PRODIGIOUS",m:"HUGE/BIG",d:"Remarkably great in size or extent",e:"She displayed prodigious talent at the age of seven.",l:12,x:false},
+  {w:"VOLUMINOUS",m:"HUGE/BIG",d:"Occupying great volume; lengthy",e:"The voluminous report ran to four hundred pages.",l:12,x:false},
+  {w:"INDEFENSIBLE",m:"CANNOT BE DEFENDED",d:"Not justifiable; impossible to defend",e:"His treatment of staff was morally indefensible.",l:12,x:false},
+  {w:"UNTENABLE",m:"CANNOT BE DEFENDED",d:"Cannot be maintained or defended against criticism",e:"The government's position became untenable after the leak.",l:12,x:false},
+  {w:"CONSCIENTIOUS",m:"CAREFUL/PRECISE",d:"Diligent and thorough; wishing to do what is right",e:"She was conscientious in every detail of her work.",l:12,x:false},
+  {w:"FASTIDIOUS",m:"CAREFUL/PRECISE",d:"Very attentive to accuracy and detail; fussy",e:"The fastidious editor caught every misplaced comma.",l:12,x:false},
+  {w:"METICULOUS",m:"CAREFUL/PRECISE",d:"Showing great attention to detail; very careful",e:"The meticulous surgeon prepared every instrument in advance.",l:12,x:false},
+  {w:"PUNCTILIOUS",m:"CAREFUL/PRECISE",d:"Showing great attention to detail in conduct",e:"A punctilious host ensures every guest feels welcome.",l:12,x:false},
+  {w:"SCRUPULOUS",m:"CAREFUL/PRECISE",d:"Diligent; careful about doing what is right",e:"A scrupulous researcher verifies every source.",l:12,x:false},
+  {w:"FINICKY",m:"FUSSY",d:"Excessively particular about detail; fussy",e:"He was finicky about the spacing in every slide.",l:12,x:false},
+  {w:"PERSNICKETY",m:"FUSSY",d:"Placing too much emphasis on trivial details",e:"The persnickety editor returned the draft seven times.",l:12,x:false},
+  {w:"SQUEAMISH",m:"FUSSY",d:"Easily sickened; excessively fastidious",e:"The squeamish student fainted during the biology lab.",l:12,x:false},
+  {w:"STICKLER",m:"FUSSY",d:"A person who insists on a certain quality or type of behavior",e:"She is a stickler for punctuality at every meeting.",l:12,x:false},
+  {w:"HEDONIST",m:"DESIRING ONLY PLEASURE",d:"A person who believes pleasure is the chief good",e:"The hedonist prioritized travel and luxury over saving.",l:12,x:false},
+  {w:"SYBARITE",m:"DESIRING ONLY PLEASURE",d:"A person devoted to luxury and pleasure",e:"The sybarite ordered the most expensive item on every menu.",l:12,x:false},
+  {w:"MARGINAL",m:"INSIGNIFICANT",d:"Of minor importance; not central",e:"The improvement was marginal and barely noticeable.",l:12,x:false},
+  {w:"NEGLIGIBLE",m:"INSIGNIFICANT",d:"So small as to be unimportant",e:"The cost difference between the two plans was negligible.",l:12,x:false},
+  {w:"PALTRY",m:"INSIGNIFICANT",d:"Small or meager; petty",e:"The compensation offered was a paltry sum.",l:12,x:false},
+  {w:"TOKEN",m:"INSIGNIFICANT",d:"Serving as a symbol of something; minimal",e:"The company made a token effort to improve conditions.",l:12,x:false},
+  {w:"TRIFLE",m:"INSIGNIFICANT",d:"A thing of little value or importance",e:"He dismissed the safety concern as a mere trifle.",l:12,x:false},
+  {w:"CONJECTURE",m:"TO GUESS/INFER",d:"An opinion formed without definite proof",e:"Her theory was conjecture without experimental support.",l:12,x:false},
+  {w:"DEDUCE",m:"TO GUESS/INFER",d:"To arrive at a conclusion by reasoning",e:"From the evidence, she deduced the motive quickly.",l:12,x:false},
+  {w:"EXTRAPOLATE",m:"TO GUESS/INFER",d:"To extend a conclusion beyond known data",e:"Researchers extrapolated long-term trends from five years of data.",l:12,x:false},
+  {w:"SURMISE",m:"TO GUESS/INFER",d:"To suppose without full evidence",e:"He surmised from her expression that the news was bad.",l:12,x:false},
+  {w:"ALLUDE",m:"HINT/INDIRECT REFERENCE",d:"To suggest or call attention to indirectly",e:"The speaker alluded to the scandal without naming names.",l:12,x:false},
+  {w:"INNUENDO",m:"HINT/INDIRECT REFERENCE",d:"An allusive remark; typically disparaging",e:"His speech was full of political innuendo.",l:12,x:false},
+  {w:"INSINUATE",m:"HINT/INDIRECT REFERENCE",d:"To suggest in an indirect, subtle way",e:"She insinuated that he had been less than honest.",l:12,x:false},
+  {w:"TACIT",m:"HINT/INDIRECT REFERENCE",d:"Understood without being stated; implied",e:"There was tacit agreement among members not to discuss it.",l:12,x:false},
+  {w:"BLATANT",m:"HINT/INDIRECT REFERENCE",d:"Done openly without shame; obvious",e:"The blatant disregard for rules surprised everyone.",l:12,x:true},
+  {w:"NUANCES",m:"FINE/DELICATE",d:"Subtle differences in meaning or quality",e:"A good translator captures all the nuances of the original.",l:12,x:false},
+  {w:"SUBTLE",m:"FINE/DELICATE",d:"Delicate or faint; not obvious",e:"The subtle shift in tone changed the meaning entirely.",l:12,x:false},
+  {w:"DISCOURSE",m:"LONG ESSAY/SPEECH",d:"Written or spoken communication on a topic",e:"His discourse on ethics ran for two full hours.",l:12,x:false},
+  {w:"DISSERTATION",m:"LONG ESSAY/SPEECH",d:"A long essay on a specific subject",e:"Her doctoral dissertation was published as a book.",l:12,x:false},
+  {w:"RHETORIC",m:"LONG ESSAY/SPEECH",d:"The art of effective speaking or writing",e:"Her rhetoric was polished but lacked substance.",l:12,x:false},
+  {w:"CANDOR",m:"FRANK",d:"The quality of being open and honest",e:"She appreciated his candor even when it stung.",l:12,x:false},
+  {w:"FORTHRIGHT",m:"FRANK",d:"Direct and outspoken; straightforward",e:"His forthright manner was sometimes mistaken for rudeness.",l:12,x:false},
+  {w:"BOTCH",m:"MISTAKE/ACT DONE CARELESSLY",d:"To carry out badly; to bungle",e:"The contractor botched the renovation completely.",l:12,x:false},
+  {w:"BUNGLE",m:"MISTAKE/ACT DONE CARELESSLY",d:"To perform a task clumsily or incompetently",e:"The team bungled the product launch with poor planning.",l:12,x:false},
+  {w:"TACTLESS",m:"MISTAKE/ACT DONE CARELESSLY",d:"Having or showing a lack of tact",e:"His tactless comment silenced the entire room.",l:12,x:false},
+  {w:"BASTION",m:"STRENGTHEN/SUPPORT",d:"A place or system that protects something",e:"The NGO was a bastion of free speech in the region.",l:12,x:false},
+  {w:"BOLSTER",m:"STRENGTHEN/SUPPORT",d:"To strengthen or support",e:"The new data bolstered her argument considerably.",l:12,x:false},
+  {w:"BUTTRESS",m:"STRENGTHEN/SUPPORT",d:"To increase the strength of; to support",e:"New evidence buttressed the prosecution's case.",l:12,x:false},
+  {w:"FORTIFY",m:"STRENGTHEN/SUPPORT",d:"To strengthen against attack; to reinforce",e:"Exercise and sleep fortified him against illness.",l:12,x:false},
+  {w:"APPREHEND",m:"UNDERSTAND",d:"To grasp mentally; also to arrest",e:"It took a moment to apprehend the full implication.",l:12,x:false},
+  {w:"ASSIMILATE",m:"UNDERSTAND",d:"To take in and fully understand information",e:"Students need time to assimilate new material.",l:12,x:false},
+  {w:"FATHOM",m:"UNDERSTAND",d:"To understand after much thought",e:"She could not fathom why he had resigned.",l:12,x:false},
+  {w:"INTELLIGIBLE",m:"UNDERSTAND",d:"Able to be understood; comprehensible",e:"The instructions were barely intelligible to a layperson.",l:12,x:false},
+  {w:"OSTRACIZE",m:"EXCLUDE/FORBID",d:"To exclude from a society or group",e:"The whistleblower was ostracized by former colleagues.",l:12,x:false},
+  {w:"SHUN",m:"EXCLUDE/FORBID",d:"To persistently avoid or ignore",e:"She was shunned by her community after the divorce.",l:12,x:false},
+  {w:"TABOO",m:"EXCLUDE/FORBID",d:"A social or religious custom prohibiting an action",e:"Discussing salaries remained taboo in the office.",l:12,x:false},
+  {w:"ABUT",m:"PLACE SIDE BY SIDE",d:"To touch or lean on at one end",e:"The property abuts the national park boundary.",l:12,x:false},
+  {w:"CONTIGUOUS",m:"PLACE SIDE BY SIDE",d:"Sharing a common border; touching",e:"The two contiguous states share a long river border.",l:12,x:false},
+  {w:"JUXTAPOSITION",m:"PLACE SIDE BY SIDE",d:"Placing two things close together for contrasting effect",e:"The juxtaposition of wealth and poverty was stark.",l:12,x:false},
+  {w:"ERODE",m:"WEAKEN",d:"To gradually destroy; to wear away",e:"Years of criticism eroded his confidence.",l:12,x:false},
+  {w:"UNDERMINE",m:"WEAKEN",d:"To weaken; to damage gradually",e:"The leaks undermined the CEO's authority.",l:12,x:false},
+  {w:"SUBVERT",m:"WEAKEN",d:"To undermine the power of an authority",e:"The group sought to subvert democratic institutions.",l:12,x:false},
+  {w:"COMPASSION",m:"SYMPATHY",d:"Sympathetic pity and concern",e:"She showed genuine compassion for the displaced families.",l:12,x:false},
+  {w:"EMPATHY",m:"SYMPATHY",d:"The ability to understand feelings of another",e:"Great leaders combine authority with empathy.",l:12,x:false},
+  {w:"CALLOUS",m:"SYMPATHY",d:"Showing or having an insensitive and cruel disregard",e:"His callous remarks about the victims shocked everyone.",l:12,x:true},
+  {w:"HISTRIONIC",m:"DRAMATIC BEHAVIOR",d:"Overly dramatic and theatrical in character",e:"His histrionic reaction to the mild criticism was embarrassing.",l:12,x:false},
+  {w:"MELODRAMATIC",m:"DRAMATIC BEHAVIOR",d:"Exaggerated and theatrical in behavior",e:"Her melodramatic exit made everyone uncomfortable.",l:12,x:false},
+  {w:"QUENCH",m:"ENOUGH/FULLY SATISFIED",d:"To satisfy a desire or thirst",e:"One glass of water was not enough to quench his thirst.",l:12,x:false},
+  {w:"REPLETE",m:"ENOUGH/FULLY SATISFIED",d:"Filled to the point of satiation",e:"After the feast, everyone was thoroughly replete.",l:12,x:false},
+  {w:"SATIATE",m:"ENOUGH/FULLY SATISFIED",d:"To satisfy fully; to fill to excess",e:"The meal satiated even the hungriest guests.",l:12,x:false},
+  {w:"ANNIHILATE",m:"REMOVE/DESTROY",d:"To destroy utterly; to obliterate",e:"The bomb annihilated an entire city block.",l:12,x:false},
+  {w:"DECIMATE",m:"REMOVE/DESTROY",d:"To drastically reduce; to kill or destroy a large part",e:"The disease decimated the local deer population.",l:12,x:false},
+  {w:"ERADICATE",m:"REMOVE/DESTROY",d:"To destroy completely; to put an end to",e:"The campaign aimed to eradicate polio globally.",l:12,x:false},
+  {w:"EXPUNGE",m:"REMOVE/DESTROY",d:"To erase or remove completely",e:"He petitioned the court to expunge his criminal record.",l:12,x:false},
+  {w:"OBLITERATE",m:"REMOVE/DESTROY",d:"To destroy utterly; to wipe out",e:"The fire obliterated every document in the archive.",l:12,x:false},
+  {w:"BEREFT",m:"LACKING",d:"Lacking something; deprived of",e:"She was bereft of ideas after the long meeting.",l:12,x:false},
+  {w:"DEVOID",m:"LACKING",d:"Entirely lacking or free from",e:"His response was devoid of empathy.",l:12,x:false},
+  {w:"HYPOTHETICAL",m:"THEORY WITHOUT EVIDENCE",d:"Supposed but not necessarily real or true",e:"The professor posed a hypothetical to challenge assumptions.",l:12,x:false},
+  {w:"SPECULATE",m:"THEORY WITHOUT EVIDENCE",d:"To form a theory without firm evidence",e:"Analysts began to speculate about a hostile takeover.",l:12,x:false},
+  {w:"HABITUATE",m:"USED TO",d:"To accustom oneself to something",e:"It takes time to habituate to a new climate.",l:12,x:false},
+  {w:"INURE",m:"USED TO",d:"To accustom someone to something unpleasant",e:"Years in the field had inured her to hardship.",l:12,x:false},
+  {w:"INVETERATE",m:"USED TO",d:"Having a particular habit deeply established",e:"An inveterate gambler rarely knows when to stop.",l:12,x:false},
+  {w:"BALK",m:"TO DO RELUCTANTLY",d:"To refuse to proceed; to hesitate",e:"The horse balked at the new fence.",l:12,x:false},
+  {w:"GRUDGING",m:"TO DO RELUCTANTLY",d:"Given or done reluctantly or resentfully",e:"He received grudging respect from his harshest critics.",l:12,x:false},
+  {w:"AGNOSTIC",m:"PERTAINING TO RELIGION",d:"A person who believes the existence of God is unknown",e:"As an agnostic, he neither affirmed nor denied God's existence.",l:12,x:false},
+  {w:"PIOUS",m:"PERTAINING TO RELIGION",d:"Devoutly religious; making a show of virtue",e:"The pious villager visited the temple every morning.",l:12,x:false},
+  {w:"THEOLOGY",m:"PERTAINING TO RELIGION",d:"The study of the nature of God and religious belief",e:"She earned a doctorate in comparative theology.",l:12,x:false},
+];
+
+// Give each word an id
+VOCAB.forEach((v,i) => v.id = i);
+
+// ═══════════════════════════════════════════
+// STATE
+// ═══════════════════════════════════════════
+let currentUser = null;
+let stats = {}; // { wordId: { correct, wrong, streak } }
+let sessionCards = [];
+let cardIndex = 0;
+let flipped = false;
+let sessionResults = [];
+let sessionMode = null;
+let listsVisible = false;
+let statsFilter = 'all';
+let statsSort = 'wrong';
+let animating = false;
+
+// ═══════════════════════════════════════════
+// STORAGE — keyed per user, shared so syncs across browsers
+// ═══════════════════════════════════════════
+function storageKey() { return STORAGE_KEY_PREFIX + currentUser; }
+
+async function loadUserStats() {
+  try {
+    const r = await window.storage.get(storageKey(), true); // shared=true
+    stats = r ? JSON.parse(r.value) : {};
+  } catch { stats = {}; }
+}
+
+async function saveUserStats() {
+  try { await window.storage.set(storageKey(), JSON.stringify(stats), true); } catch {}
+}
+
+// ═══════════════════════════════════════════
+// AUTH
+// ═══════════════════════════════════════════
+function doLogin() {
+  const u = document.getElementById('inp-user').value.trim();
+  const p = document.getElementById('inp-pass').value.trim();
+  const err = document.getElementById('login-err');
+  if (!CREDS[u] || CREDS[u] !== p) {
+    err.textContent = 'Invalid username or password.';
+    document.getElementById('inp-pass').value = '';
+    return;
+  }
+  err.textContent = '';
+  currentUser = u;
+  loadUserStats().then(() => {
+    document.getElementById('login-screen').style.display = 'none';
+    showScreen('home-screen');
+    renderHome();
+  });
+}
+
+document.getElementById('inp-pass').addEventListener('keydown', e => { if (e.key === 'Enter') doLogin(); });
+document.getElementById('inp-user').addEventListener('keydown', e => { if (e.key === 'Enter') document.getElementById('inp-pass').focus(); });
+
+function doLogout() {
+  currentUser = null; stats = {};
+  document.getElementById('login-screen').style.display = 'flex';
+  showScreen(null);
+  document.getElementById('inp-user').value = '';
+  document.getElementById('inp-pass').value = '';
+}
+
+// ═══════════════════════════════════════════
+// SCREEN MANAGEMENT
+// ═══════════════════════════════════════════
+function showScreen(id) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  if (id) document.getElementById(id).classList.add('active');
+}
+
+// ═══════════════════════════════════════════
+// HOME
+// ═══════════════════════════════════════════
+function renderHome() {
+  showScreen('home-screen');
+  document.getElementById('home-user-tag').textContent = `logged in as ${currentUser}`;
+  const mastered = Object.values(stats).filter(s => s.streak >= 3).length;
+  const weak = Object.values(stats).filter(s => s.wrong > 0 && s.streak < 3).length;
+  document.getElementById('home-stats').innerHTML = `
+    <div class="stat-pill"><div class="stat-val" style="color:var(--gold2)">${VOCAB.length}</div><div class="stat-lbl">Total</div></div>
+    <div class="stat-pill"><div class="stat-val" style="color:var(--green)">${mastered}</div><div class="stat-lbl">Mastered</div></div>
+    <div class="stat-pill"><div class="stat-val" style="color:var(--red)">${weak}</div><div class="stat-lbl">Weak</div></div>
+  `;
+  document.getElementById('weak-desc').textContent = `${weak} words need attention`;
+  // Build list grid
+  const lg = document.getElementById('list-grid');
+  lg.innerHTML = '';
+  for (let n=1; n<=12; n++) {
+    const cnt = VOCAB.filter(v => v.l === n).length;
+    const btn = document.createElement('button');
+    btn.className = 'list-btn';
+    btn.innerHTML = `List ${n}<span class="list-cnt">${cnt}w</span>`;
+    btn.onclick = () => startSession(n);
+    lg.appendChild(btn);
+  }
+}
+
+function toggleLists() {
+  listsVisible = !listsVisible;
+  document.getElementById('list-grid').style.display = listsVisible ? 'grid' : 'none';
+  document.getElementById('list-toggle-btn').textContent = `Practice by List ${listsVisible ? '▲' : '▼'}`;
+}
+
+// ═══════════════════════════════════════════
+// SESSION
+// ═══════════════════════════════════════════
+function weightedShuffle(cards) {
+  return [...cards].sort(() => Math.random() - 0.5).sort((a,b) => {
+    const sa = stats[a.id] || {correct:0,wrong:0,streak:0};
+    const sb = stats[b.id] || {correct:0,wrong:0,streak:0};
+    const wa = sa.wrong > 0 ? (sa.wrong*3 - sa.streak) : 0;
+    const wb = sb.wrong > 0 ? (sb.wrong*3 - sb.streak) : 0;
+    return (wb - wa) + (Math.random()*4 - 2);
+  });
+}
+
+function startSession(mode) {
+  let cards;
+  if (mode === 'weak') {
+    cards = VOCAB.filter(c => { const s=stats[c.id]; return s && s.wrong>0 && s.streak<3; });
+    if (!cards.length) { alert('No weak words yet — keep practicing!'); return; }
+  } else if (mode === 'all') {
+    cards = [...VOCAB];
+  } else {
+    cards = VOCAB.filter(c => c.l === mode);
+  }
+  sessionCards = weightedShuffle(cards);
+  cardIndex = 0; flipped = false; sessionResults = []; sessionMode = mode;
+  showScreen('session-screen');
+  renderCard();
+}
+
+function renderCard() {
+  if (cardIndex >= sessionCards.length) { endSession(); return; }
+  const card = sessionCards[cardIndex];
+  const pct = (cardIndex / sessionCards.length) * 100;
+  document.getElementById('prog-fill').style.width = pct + '%';
+  document.getElementById('prog-text').textContent = `${cardIndex}/${sessionCards.length}`;
+  document.getElementById('sess-list-badge').textContent = `List ${card.l}`;
+  const cs = stats[card.id] || {correct:0,wrong:0,streak:0};
+  document.getElementById('streak-row').textContent = cs.streak >= 1 ? `🔥 ${cs.streak} streak` : '';
+  document.getElementById('action-row').style.display = 'none';
+  flipped = false;
+  const fc = document.getElementById('flashcard');
+  fc.innerHTML = `
+    <div class="card-front">
+      ${card.x ? '<div class="ant-badge">ANTONYM</div>' : ''}
+      <div class="card-word">${card.w}</div>
+      <div class="card-hint">tap to reveal →</div>
+    </div>
+  `;
+  updateMini();
+}
+
+function flipCard() {
+  if (flipped || animating) return;
+  flipped = true;
+  animating = true;
+  const fc = document.getElementById('flashcard');
+  fc.classList.add('flip-out');
+  setTimeout(() => {
+    const card = sessionCards[cardIndex];
+    fc.classList.remove('flip-out');
+    fc.innerHTML = `
+      <div class="card-back">
+        <div class="master-theme">${card.x ? 'ANTONYM of ' + card.m : card.m}</div>
+        <div class="card-def">${card.d}</div>
+        <div class="card-ex">"${card.e}"</div>
+      </div>
+    `;
+    document.getElementById('action-row').style.display = 'grid';
+    animating = false;
+  }, 180);
+}
+
+async function markCard(correct) {
+  if (animating) return;
+  animating = true;
+  const card = sessionCards[cardIndex];
+  const prev = stats[card.id] || {correct:0,wrong:0,streak:0};
+  stats[card.id] = correct
+    ? {correct: prev.correct+1, wrong: prev.wrong, streak: prev.streak+1}
+    : {correct: prev.correct, wrong: prev.wrong+1, streak: 0};
+  await saveUserStats();
+  sessionResults.push({card, correct});
+  const fc = document.getElementById('flashcard');
+  fc.classList.add(correct ? 'slide-right' : 'slide-left');
+  setTimeout(() => {
+    fc.classList.remove('slide-right','slide-left');
+    cardIndex++;
+    animating = false;
+    renderCard();
+  }, 290);
+}
+
+function updateMini() {
+  const c = sessionResults.filter(r=>r.correct).length;
+  const w = sessionResults.filter(r=>!r.correct).length;
+  document.getElementById('session-mini').innerHTML = `
+    <span style="color:var(--green)">✓ ${c}</span>
+    <span style="color:var(--muted);font-size:0.65rem">this session</span>
+    <span style="color:var(--red)">✗ ${w}</span>
+  `;
+}
+
+function stopSession() {
+  if (sessionResults.length === 0) { showScreen('home-screen'); renderHome(); return; }
+  endSession();
+}
+
+function endSession() { renderSummary(); }
+
+// ═══════════════════════════════════════════
+// SUMMARY
+// ═══════════════════════════════════════════
+function renderSummary() {
+  showScreen('summary-screen');
+  const correct = sessionResults.filter(r=>r.correct).length;
+  const total = sessionResults.length;
+  const pct = total > 0 ? Math.round((correct/total)*100) : 0;
+  const missed = sessionResults.filter(r=>!r.correct).map(r=>r.card);
+  const sc = document.getElementById('summary-content');
+  sc.innerHTML = `
+    <div style="text-align:center;padding:28px 0 16px">
+      <div class="score-circle"><div class="score-pct">${pct}%</div><div class="score-lbl">accuracy</div></div>
+      <div class="sum-title">Session Complete</div>
+      <div class="sum-meta">${correct}/${total} correct</div>
+    </div>
+    ${missed.length ? `
+    <div class="missed-box">
+      <div class="missed-ttl">Words to revisit (${missed.length})</div>
+      <div class="missed-scroll">
+        ${missed.map(c=>`
+          <div class="missed-item">
+            <span class="missed-word">${c.w}</span>
+            <span class="missed-theme">${c.x ? 'ANT: '+c.m : c.m}</span>
+          </div>`).join('')}
+      </div>
+    </div>` : '<div style="flex:1"></div>'}
+    <div class="sum-btns" style="margin-top:16px">
+      <button class="sum-btn" style="background:var(--bg2);border:1px solid var(--border)" onclick="showScreen('home-screen');renderHome()">⌂ Home</button>
+      <button class="sum-btn" style="background:rgba(201,168,76,0.1);border:1px solid rgba(201,168,76,0.4)" onclick="startSession(sessionMode)">↺ Again</button>
+      ${missed.length ? `<button class="sum-btn" style="background:rgba(224,112,112,0.1);border:1px solid rgba(224,112,112,0.4)" onclick="startSession('weak')">🎯 Weak</button>` : '<div></div>'}
+    </div>
+  `;
+}
+
+// ═══════════════════════════════════════════
+// STATS
+// ═══════════════════════════════════════════
+function renderStats() {
+  showScreen('stats-screen');
+  const touched = VOCAB.filter(v => { const s=stats[v.id]; return s && (s.correct>0||s.wrong>0); }).length;
+  document.getElementById('stats-meta').textContent = `${touched}/${VOCAB.length} attempted`;
+  // filters
+  const filters = ['all','weak','mastered','untouched'];
+  document.getElementById('filter-row').innerHTML = filters.map(f =>
+    `<button class="filter-btn ${statsFilter===f?'active':''}" onclick="setFilter('${f}')">${f.charAt(0).toUpperCase()+f.slice(1)}</button>`
+  ).join('');
+  // sorts
+  const sorts = ['wrong','correct','streak','alpha'];
+  document.getElementById('sort-row').innerHTML = `<span class="sort-lbl">Sort:</span>` + sorts.map(s =>
+    `<button class="sort-btn ${statsSort===s?'active':''}" onclick="setSort('${s}')">${s}</button>`
+  ).join('');
+  renderStatsTable();
+}
+
+function setFilter(f) { statsFilter = f; renderStats(); }
+function setSort(s) { statsSort = s; renderStats(); }
+
+function renderStatsTable() {
+  let rows = VOCAB.map(v => ({...v, s: stats[v.id]||{correct:0,wrong:0,streak:0}}));
+  if (statsFilter==='weak') rows = rows.filter(r => r.s.wrong>0 && r.s.streak<3);
+  if (statsFilter==='mastered') rows = rows.filter(r => r.s.streak>=3);
+  if (statsFilter==='untouched') rows = rows.filter(r => r.s.correct===0 && r.s.wrong===0);
+  rows.sort((a,b) => {
+    if (statsSort==='wrong') return b.s.wrong - a.s.wrong;
+    if (statsSort==='correct') return b.s.correct - a.s.correct;
+    if (statsSort==='streak') return b.s.streak - a.s.streak;
+    return a.w.localeCompare(b.w);
+  });
+  document.getElementById('stats-table').innerHTML = rows.map((r,i) => `
+    <div class="t-row">
+      <div class="t-word">
+        ${r.w}
+        ${r.x ? '<span class="ant-tag">ANT</span>' : ''}
+        ${r.s.streak>=3 ? '<span class="star-tag">⭐</span>' : ''}
+      </div>
+      <div class="t-theme">${r.m}</div>
+      <div class="t-nums">
+        <span style="color:var(--green)">✓${r.s.correct}</span>
+        <span style="color:var(--red)">✗${r.s.wrong}</span>
+        <span style="color:var(--gold)">🔥${r.s.streak}</span>
+      </div>
+    </div>
+  `).join('');
+}
+</script>
+</body>
+</html>
