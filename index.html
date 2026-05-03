@@ -1064,78 +1064,100 @@ function loadLocalCache() {
   return false;
 }
 
+async function fetchWithTimeout(url, options, ms=6000) {
+  const controller = new AbortController();
+  const tid = setTimeout(() => controller.abort(), ms);
+  try {
+    const r = await fetch(url, { ...options, signal: controller.signal });
+    clearTimeout(tid);
+    return r;
+  } catch(e) {
+    clearTimeout(tid);
+    throw e;
+  }
+}
+
 async function loadUserStats() {
-  // 1. Load local cache instantly so UI appears fast
+  // 1. Load local cache instantly — UI shows immediately
   loadLocalCache();
 
-  // 2. Fetch from GitHub (source of truth)
+  // 2. Fetch from GitHub with 6s timeout (source of truth)
   try {
-    const resp = await fetch(GH_API, {
+    const resp = await fetchWithTimeout(GH_API, {
       headers: {
         "Authorization": `token ${GH_TOKEN}`,
         "Accept": "application/vnd.github.v3+json"
       }
-    });
+    }, 6000);
     if (resp.ok) {
       const data = await resp.json();
       ghFileSHA = data.sha;
-      const allStats = JSON.parse(atob(data.content.replace(/\n/g,'')));
-      // Merge: cloud wins over local (cloud is source of truth)
-      stats = allStats[currentUser] || {};
-      saveLocalCache(); // update local cache with cloud data
+      try {
+        const allStats = JSON.parse(atob(data.content.replace(/\n/g,'')));
+        stats = allStats[currentUser] || {};
+        saveLocalCache();
+      } catch(e) {
+        console.warn("Could not parse cloud stats, keeping local:", e);
+      }
+    } else {
+      console.warn("GitHub returned", resp.status, "— using local cache");
     }
   } catch (e) {
-    console.warn("GitHub sync failed, using local cache:", e);
+    console.warn("GitHub sync failed/timed out, using local cache:", e.message);
   }
 }
 
 async function saveUserStats() {
-  // 1. Save locally immediately
+  // 1. Save to localStorage immediately — this is the safety net
   saveLocalCache();
 
-  // 2. Push to GitHub in background
-  try {
-    // Read current file to get latest SHA + all users' stats
-    const readResp = await fetch(GH_API, {
-      headers: {
-        "Authorization": `token ${GH_TOKEN}`,
-        "Accept": "application/vnd.github.v3+json"
+  // 2. Push to GitHub in background (non-blocking, fire and forget)
+  setTimeout(async () => {
+    try {
+      // Read latest file to get SHA + merge all users
+      const readResp = await fetchWithTimeout(GH_API, {
+        headers: {
+          "Authorization": `token ${GH_TOKEN}`,
+          "Accept": "application/vnd.github.v3+json"
+        }
+      }, 8000);
+
+      let allStats = {};
+      let sha = ghFileSHA;
+
+      if (readResp.ok) {
+        const data = await readResp.json();
+        sha = data.sha;
+        ghFileSHA = sha;
+        try { allStats = JSON.parse(atob(data.content.replace(/\n/g,''))); } catch {}
       }
-    });
-    let allStats = {};
-    let sha = ghFileSHA;
-    if (readResp.ok) {
-      const data = await readResp.json();
-      sha = data.sha;
-      ghFileSHA = sha;
-      try { allStats = JSON.parse(atob(data.content.replace(/\n/g,''))); } catch {}
-    }
 
-    // Merge current user's stats
-    allStats[currentUser] = stats;
+      // Merge this user's stats in
+      allStats[currentUser] = stats;
 
-    // Write back
-    const content = btoa(JSON.stringify(allStats));
-    const writeResp = await fetch(GH_API, {
-      method: "PUT",
-      headers: {
-        "Authorization": `token ${GH_TOKEN}`,
-        "Accept": "application/vnd.github.v3+json",
-        "Content-Type": "application/json"
-      },
-      body: JSON.stringify({
-        message: `Update stats for ${currentUser}`,
-        content: content,
-        sha: sha
-      })
-    });
-    if (writeResp.ok) {
-      const d = await writeResp.json();
-      ghFileSHA = d.content.sha;
+      const encoded = btoa(unescape(encodeURIComponent(JSON.stringify(allStats))));
+      const writeResp = await fetchWithTimeout(GH_API, {
+        method: "PUT",
+        headers: {
+          "Authorization": `token ${GH_TOKEN}`,
+          "Accept": "application/vnd.github.v3+json",
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+          message: `stats: ${currentUser}`,
+          content: encoded,
+          sha: sha
+        })
+      }, 10000);
+
+      if (writeResp.ok) {
+        const d = await writeResp.json();
+        ghFileSHA = d.content.sha;
+      }
+    } catch (e) {
+      console.warn("GitHub bg-save failed, data safe in localStorage:", e.message);
     }
-  } catch (e) {
-    console.warn("GitHub save failed, data safe in localStorage:", e);
-  }
+  }, 0);
 }
 
 // ═══════════════════════════════════════════
