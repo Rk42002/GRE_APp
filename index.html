@@ -22,15 +22,13 @@
     --r: 12px;
   }
   * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
-  html, body { min-height: 100%; background: var(--bg); color: var(--text); font-family: 'Cormorant Garamond', Georgia, serif; overflow-x: hidden; }
+  html, body { height: 100%; background: var(--bg); color: var(--text); font-family: 'Cormorant Garamond', Georgia, serif; overflow-x: hidden; }
 
   /* ── LOGIN ── */
   #login-screen {
-    position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-    display: flex; flex-direction: column; align-items: center; justify-content: center;
-    padding: 24px; background: var(--bg); z-index: 9999; overflow-y: auto;
+    min-height: 100vh; display: flex; flex-direction: column; align-items: center; justify-content: center;
+    padding: 24px; background: var(--bg);
   }
-  #login-screen.hidden { display: none; }
   .login-glyph { font-size: 3rem; color: var(--gold); margin-bottom: 12px; }
   .login-title { font-size: 2.4rem; font-weight: 700; letter-spacing: 0.18em; text-transform: uppercase; color: var(--gold2); }
   .login-sub { font-size: 0.75rem; color: var(--muted); letter-spacing: 0.15em; text-transform: uppercase; margin-bottom: 40px; }
@@ -157,28 +155,6 @@
   .ant-tag { font-size: 0.55rem; background: rgba(224,112,112,0.1); color: var(--red); border: 1px solid rgba(224,112,112,0.3); border-radius: 3px; padding: 1px 4px; }
   .star-tag { font-size: 0.75rem; }
 
-  /* ── SMART PRACTICE CARD ── */
-  .smart-card { background: linear-gradient(135deg, #12101e, #0e0e1a); border: 1px solid #6c4fc355; border-radius: 14px; padding: 16px 14px; margin-bottom: 10px; cursor: pointer; transition: border-color 0.2s; }
-  .smart-card:active { border-color: #9b7de8; }
-  .smart-header { display: flex; align-items: center; gap: 10px; margin-bottom: 6px; }
-  .smart-icon { font-size: 1.4rem; }
-  .smart-title { font-size: 0.95rem; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; color: #c4a8f0; }
-  .smart-desc { font-size: 0.72rem; color: var(--muted2); font-family: 'DM Mono', monospace; line-height: 1.5; }
-  .smart-pills { display: flex; gap: 6px; margin-top: 8px; flex-wrap: wrap; }
-  .smart-pill { font-size: 0.62rem; font-family: 'DM Mono', monospace; padding: 3px 8px; border-radius: 4px; }
-  .smart-pill-red { background: rgba(224,112,112,0.12); color: var(--red); border: 1px solid rgba(224,112,112,0.3); }
-  .smart-pill-purple { background: rgba(196,168,240,0.1); color: #c4a8f0; border: 1px solid rgba(196,168,240,0.25); }
-  .smart-pill-green { background: rgba(111,207,138,0.1); color: var(--green); border: 1px solid rgba(111,207,138,0.25); }
-
-  /* ── LIST GRID WITH WRONG BUTTON ── */
-  .list-item { display: flex; flex-direction: column; gap: 0; }
-  .list-btn-all { background: var(--bg2); border: 1px solid var(--border); border-radius: 8px 8px 0 0; padding: 9px 4px; color: var(--text); cursor: pointer; font-size: 0.75rem; font-family: 'Cormorant Garamond', serif; display: flex; flex-direction: column; align-items: center; gap: 2px; border-bottom: none; }
-  .list-btn-all:active { border-color: var(--gold); }
-  .list-btn-wrong { background: var(--bg2); border: 1px solid var(--border); border-top: 1px dashed var(--border2); border-radius: 0 0 8px 8px; padding: 5px 4px; color: var(--red); cursor: pointer; font-size: 0.62rem; font-family: 'DM Mono', monospace; text-align: center; width: 100%; }
-  .list-btn-wrong:active { background: rgba(224,112,112,0.08); }
-  .list-btn-wrong.none { color: var(--muted); cursor: default; pointer-events: none; }
-  .list-cnt { color: var(--muted); font-size: 0.62rem; font-family: 'DM Mono', monospace; }
-
   @keyframes fadeIn { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: translateY(0); } }
   @keyframes slideUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
   .anim-in { animation: slideUp 0.3s ease; }
@@ -226,21 +202,10 @@
       </div>
       <div class="mode-card" onclick="startSession('weak')" style="border-color:#e0707055">
         <div class="mode-icon">🎯</div>
-        <div class="mode-title" style="color:var(--red)">All Wrong Words</div>
+        <div class="mode-title" style="color:var(--red)">Weak Words</div>
         <div class="mode-desc" id="weak-desc">0 words</div>
       </div>
     </div>
-
-    <!-- Smart Practice -->
-    <div class="smart-card anim-in" onclick="startSession('smart')">
-      <div class="smart-header">
-        <span class="smart-icon">🧠</span>
-        <span class="smart-title">Smart Practice</span>
-      </div>
-      <div class="smart-desc">Every word you've ever got wrong — minus ones you've since nailed 3× in a row. This list shrinks as you improve.</div>
-      <div class="smart-pills" id="smart-pills"></div>
-    </div>
-
     <button class="list-toggle" onclick="toggleLists()" id="list-toggle-btn">Practice by List ▼</button>
     <div class="list-grid" id="list-grid" style="display:none"></div>
     <div class="bottom-row">
@@ -1055,111 +1020,89 @@ function localKey() { return "gre_vault_local_" + currentUser; }
 
 // Save to localStorage immediately (instant), then push to GitHub async
 function saveLocalCache() {
-  try { localStorage.setItem(localKey(), JSON.stringify(stats)); } catch(e) {}
+  try { localStorage.setItem(localKey(), JSON.stringify(stats)); } catch {}
 }
 
 function loadLocalCache() {
   try {
     const v = localStorage.getItem(localKey());
     if (v) { stats = JSON.parse(v); return true; }
-  } catch(e) {}
+  } catch {}
   return false;
 }
 
-async function fetchWithTimeout(url, options, ms=6000) {
-  const controller = new AbortController();
-  const tid = setTimeout(() => controller.abort(), ms);
-  try {
-    const r = await fetch(url, { ...options, signal: controller.signal });
-    clearTimeout(tid);
-    return r;
-  } catch(e) {
-    clearTimeout(tid);
-    throw e;
-  }
-}
-
 async function loadUserStats() {
-  // 1. Load local cache instantly — UI shows immediately
+  // 1. Load local cache instantly so UI appears fast
   loadLocalCache();
 
-  // 2. Fetch from GitHub with 6s timeout (source of truth)
+  // 2. Fetch from GitHub (source of truth)
   try {
-    const resp = await fetchWithTimeout(GH_API, {
+    const resp = await fetch(GH_API, {
       headers: {
         "Authorization": `token ${GH_TOKEN}`,
         "Accept": "application/vnd.github.v3+json"
       }
-    }, 6000);
+    });
     if (resp.ok) {
       const data = await resp.json();
       ghFileSHA = data.sha;
-      try {
-        const allStats = JSON.parse(atob(data.content.replace(/\n/g,'')));
-        stats = allStats[currentUser] || {};
-        saveLocalCache();
-      } catch(e) {
-        console.warn("Could not parse cloud stats, keeping local:", e);
-      }
-    } else {
-      console.warn("GitHub returned", resp.status, "— using local cache");
+      const allStats = JSON.parse(atob(data.content.replace(/\n/g,'')));
+      // Merge: cloud wins over local (cloud is source of truth)
+      stats = allStats[currentUser] || {};
+      saveLocalCache(); // update local cache with cloud data
     }
   } catch (e) {
-    console.warn("GitHub sync failed/timed out, using local cache:", e.message);
+    console.warn("GitHub sync failed, using local cache:", e);
   }
 }
 
 async function saveUserStats() {
-  // 1. Save to localStorage immediately — this is the safety net
+  // 1. Save locally immediately
   saveLocalCache();
 
-  // 2. Push to GitHub in background (non-blocking, fire and forget)
-  setTimeout(async () => {
-    try {
-      // Read latest file to get SHA + merge all users
-      const readResp = await fetchWithTimeout(GH_API, {
-        headers: {
-          "Authorization": `token ${GH_TOKEN}`,
-          "Accept": "application/vnd.github.v3+json"
-        }
-      }, 8000);
-
-      let allStats = {};
-      let sha = ghFileSHA;
-
-      if (readResp.ok) {
-        const data = await readResp.json();
-        sha = data.sha;
-        ghFileSHA = sha;
-        try { allStats = JSON.parse(atob(data.content.replace(/\n/g,''))); } catch(e) {}
+  // 2. Push to GitHub in background
+  try {
+    // Read current file to get latest SHA + all users' stats
+    const readResp = await fetch(GH_API, {
+      headers: {
+        "Authorization": `token ${GH_TOKEN}`,
+        "Accept": "application/vnd.github.v3+json"
       }
-
-      // Merge this user's stats in
-      allStats[currentUser] = stats;
-
-      const encoded = btoa(unescape(encodeURIComponent(JSON.stringify(allStats))));
-      const writeResp = await fetchWithTimeout(GH_API, {
-        method: "PUT",
-        headers: {
-          "Authorization": `token ${GH_TOKEN}`,
-          "Accept": "application/vnd.github.v3+json",
-          "Content-Type": "application/json"
-        },
-        body: JSON.stringify({
-          message: `stats: ${currentUser}`,
-          content: encoded,
-          sha: sha
-        })
-      }, 10000);
-
-      if (writeResp.ok) {
-        const d = await writeResp.json();
-        ghFileSHA = d.content.sha;
-      }
-    } catch (e) {
-      console.warn("GitHub bg-save failed, data safe in localStorage:", e.message);
+    });
+    let allStats = {};
+    let sha = ghFileSHA;
+    if (readResp.ok) {
+      const data = await readResp.json();
+      sha = data.sha;
+      ghFileSHA = sha;
+      try { allStats = JSON.parse(atob(data.content.replace(/\n/g,''))); } catch {}
     }
-  }, 0);
+
+    // Merge current user's stats
+    allStats[currentUser] = stats;
+
+    // Write back
+    const content = btoa(JSON.stringify(allStats));
+    const writeResp = await fetch(GH_API, {
+      method: "PUT",
+      headers: {
+        "Authorization": `token ${GH_TOKEN}`,
+        "Accept": "application/vnd.github.v3+json",
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({
+        message: `Update stats for ${currentUser}`,
+        content: content,
+        sha: sha
+      })
+    });
+    if (writeResp.ok) {
+      const d = await writeResp.json();
+      ghFileSHA = d.content.sha;
+    }
+  } catch (e) {
+    console.warn("GitHub save failed, data safe in localStorage:", e);
+  }
 }
 
 // ═══════════════════════════════════════════
@@ -1181,7 +1124,7 @@ function doLogin() {
   loadUserStats().then(() => {
     err.textContent = '';
     err.style.color = 'var(--red)';
-    document.getElementById('login-screen').classList.add('hidden');
+    document.getElementById('login-screen').style.display = 'none';
     showScreen('home-screen');
     renderHome();
   });
@@ -1192,7 +1135,7 @@ document.getElementById('inp-user').addEventListener('keydown', e => { if (e.key
 
 function doLogout() {
   currentUser = null; stats = {};
-  document.getElementById('login-screen').classList.remove('hidden');
+  document.getElementById('login-screen').style.display = 'flex';
   showScreen(null);
   document.getElementById('inp-user').value = '';
   document.getElementById('inp-pass').value = '';
@@ -1209,63 +1152,27 @@ function showScreen(id) {
 // ═══════════════════════════════════════════
 // HOME
 // ═══════════════════════════════════════════
-// ── Smart Practice helpers ──
-// "Ever wrong" = wrong > 0 at any point
-// "Smart" = ever wrong BUT streak < 3 (not yet cleared)
-function getEverWrong() {
-  return VOCAB.filter(v => { const s=stats[v.id]; return s && s.wrong > 0; });
-}
-function getSmartList() {
-  // ever got wrong AND have not since cleared (streak < 3)
-  return VOCAB.filter(v => { const s=stats[v.id]; return s && s.wrong > 0 && s.streak < 3; });
-}
-function getListWrong(listNum) {
-  return VOCAB.filter(v => v.l === listNum && stats[v.id] && stats[v.id].wrong > 0 && stats[v.id].streak < 3);
-}
-
 function renderHome() {
   showScreen('home-screen');
   document.getElementById('home-user-tag').textContent = `logged in as ${currentUser}`;
   const mastered = Object.values(stats).filter(s => s.streak >= 3).length;
-  const allWrong = getEverWrong().length;
-  const smart = getSmartList().length;
+  const weak = Object.values(stats).filter(s => s.wrong > 0 && s.streak < 3).length;
   document.getElementById('home-stats').innerHTML = `
     <div class="stat-pill"><div class="stat-val" style="color:var(--gold2)">${VOCAB.length}</div><div class="stat-lbl">Total</div></div>
     <div class="stat-pill"><div class="stat-val" style="color:var(--green)">${mastered}</div><div class="stat-lbl">Mastered</div></div>
-    <div class="stat-pill"><div class="stat-val" style="color:var(--red)">${allWrong}</div><div class="stat-lbl">Ever Wrong</div></div>
+    <div class="stat-pill"><div class="stat-val" style="color:var(--red)">${weak}</div><div class="stat-lbl">Weak</div></div>
   `;
-  document.getElementById('weak-desc').textContent = `${allWrong} words (ever missed)`;
-
-  // Smart practice pills
-  const cleared = allWrong - smart;
-  document.getElementById('smart-pills').innerHTML = `
-    <span class="smart-pill smart-pill-red">⚠ ${smart} still pending</span>
-    <span class="smart-pill smart-pill-green">✓ ${cleared} cleared (3× streak)</span>
-    <span class="smart-pill smart-pill-purple">Total ever wrong: ${allWrong}</span>
-  `;
-
-  // Build list grid — each list has "all" + "wrong" sub-button
+  document.getElementById('weak-desc').textContent = `${weak} words need attention`;
+  // Build list grid
   const lg = document.getElementById('list-grid');
   lg.innerHTML = '';
   for (let n=1; n<=12; n++) {
-    const total = VOCAB.filter(v => v.l === n).length;
-    const wrongCnt = getListWrong(n).length;
-    const item = document.createElement('div');
-    item.className = 'list-item';
-
-    const allBtn = document.createElement('button');
-    allBtn.className = 'list-btn-all';
-    allBtn.innerHTML = `List ${n}<span class="list-cnt">${total}w</span>`;
-    allBtn.onclick = () => startSession(n);
-
-    const wrongBtn = document.createElement('button');
-    wrongBtn.className = 'list-btn-wrong' + (wrongCnt === 0 ? ' none' : '');
-    wrongBtn.textContent = wrongCnt > 0 ? `✗ ${wrongCnt} wrong` : '✓ clean';
-    if (wrongCnt > 0) wrongBtn.onclick = () => startSession('list-wrong-' + n);
-
-    item.appendChild(allBtn);
-    item.appendChild(wrongBtn);
-    lg.appendChild(item);
+    const cnt = VOCAB.filter(v => v.l === n).length;
+    const btn = document.createElement('button');
+    btn.className = 'list-btn';
+    btn.innerHTML = `List ${n}<span class="list-cnt">${cnt}w</span>`;
+    btn.onclick = () => startSession(n);
+    lg.appendChild(btn);
   }
 }
 
@@ -1290,35 +1197,16 @@ function weightedShuffle(cards) {
 
 function startSession(mode) {
   let cards;
-  let badge = '—';
-
-  if (mode === 'all') {
+  if (mode === 'weak') {
+    cards = VOCAB.filter(c => { const s=stats[c.id]; return s && s.wrong>0 && s.streak<3; });
+    if (!cards.length) { alert('No weak words yet — keep practicing!'); return; }
+  } else if (mode === 'all') {
     cards = [...VOCAB];
-    badge = 'All Lists';
-  } else if (mode === 'weak') {
-    // All ever-wrong words (including cleared ones — for full review)
-    cards = getEverWrong();
-    if (!cards.length) { alert('No wrong words yet — keep practicing!'); return; }
-    badge = 'All Wrong';
-  } else if (mode === 'smart') {
-    // Ever wrong MINUS streak>=3 — the ones still needing work
-    cards = getSmartList();
-    if (!cards.length) { alert('Smart list is empty — you've cleared everything! 🎉'); return; }
-    badge = '🧠 Smart';
-  } else if (typeof mode === 'string' && mode.startsWith('list-wrong-')) {
-    const listNum = parseInt(mode.split('-')[2]);
-    cards = getListWrong(listNum);
-    if (!cards.length) { alert(`No wrong words in List ${listNum} — clean!`); return; }
-    badge = `L${listNum} Wrong`;
   } else {
-    // Specific list number (all words)
     cards = VOCAB.filter(c => c.l === mode);
-    badge = `List ${mode}`;
   }
-
   sessionCards = weightedShuffle(cards);
   cardIndex = 0; flipped = false; sessionResults = []; sessionMode = mode;
-  document.getElementById('sess-list-badge').textContent = badge;
   showScreen('session-screen');
   renderCard();
 }
@@ -1433,7 +1321,7 @@ function renderSummary() {
     <div class="sum-btns" style="margin-top:16px">
       <button class="sum-btn" style="background:var(--bg2);border:1px solid var(--border)" onclick="showScreen('home-screen');renderHome()">⌂ Home</button>
       <button class="sum-btn" style="background:rgba(201,168,76,0.1);border:1px solid rgba(201,168,76,0.4)" onclick="startSession(sessionMode)">↺ Again</button>
-      ${missed.length ? `<button class="sum-btn" style="background:rgba(196,168,240,0.1);border:1px solid rgba(196,168,240,0.35);color:#c4a8f0" onclick="startSession('smart')">🧠 Smart</button>` : '<div></div>'}
+      ${missed.length ? `<button class="sum-btn" style="background:rgba(224,112,112,0.1);border:1px solid rgba(224,112,112,0.4)" onclick="startSession('weak')">🎯 Weak</button>` : '<div></div>'}
     </div>
   `;
 }
