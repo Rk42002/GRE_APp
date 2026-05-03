@@ -22,13 +22,15 @@
     --r: 12px;
   }
   * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
-  html, body { height: 100%; background: var(--bg); color: var(--text); font-family: 'Cormorant Garamond', Georgia, serif; overflow-x: hidden; }
+  html, body { min-height: 100%; background: var(--bg); color: var(--text); font-family: 'Cormorant Garamond', Georgia, serif; overflow-x: hidden; }
 
   /* ── LOGIN ── */
   #login-screen {
-    min-height: 100vh; display: flex; flex-direction: column; align-items: center; justify-content: center;
-    padding: 24px; background: var(--bg);
+    position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    padding: 24px; background: var(--bg); z-index: 9999; overflow-y: auto;
   }
+  #login-screen.hidden { display: none; }
   .login-glyph { font-size: 3rem; color: var(--gold); margin-bottom: 12px; }
   .login-title { font-size: 2.4rem; font-weight: 700; letter-spacing: 0.18em; text-transform: uppercase; color: var(--gold2); }
   .login-sub { font-size: 0.75rem; color: var(--muted); letter-spacing: 0.15em; text-transform: uppercase; margin-bottom: 40px; }
@@ -155,6 +157,28 @@
   .ant-tag { font-size: 0.55rem; background: rgba(224,112,112,0.1); color: var(--red); border: 1px solid rgba(224,112,112,0.3); border-radius: 3px; padding: 1px 4px; }
   .star-tag { font-size: 0.75rem; }
 
+  /* ── SMART PRACTICE CARD ── */
+  .smart-card { background: linear-gradient(135deg, #12101e, #0e0e1a); border: 1px solid #6c4fc355; border-radius: 14px; padding: 16px 14px; margin-bottom: 10px; cursor: pointer; transition: border-color 0.2s; }
+  .smart-card:active { border-color: #9b7de8; }
+  .smart-header { display: flex; align-items: center; gap: 10px; margin-bottom: 6px; }
+  .smart-icon { font-size: 1.4rem; }
+  .smart-title { font-size: 0.95rem; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; color: #c4a8f0; }
+  .smart-desc { font-size: 0.72rem; color: var(--muted2); font-family: 'DM Mono', monospace; line-height: 1.5; }
+  .smart-pills { display: flex; gap: 6px; margin-top: 8px; flex-wrap: wrap; }
+  .smart-pill { font-size: 0.62rem; font-family: 'DM Mono', monospace; padding: 3px 8px; border-radius: 4px; }
+  .smart-pill-red { background: rgba(224,112,112,0.12); color: var(--red); border: 1px solid rgba(224,112,112,0.3); }
+  .smart-pill-purple { background: rgba(196,168,240,0.1); color: #c4a8f0; border: 1px solid rgba(196,168,240,0.25); }
+  .smart-pill-green { background: rgba(111,207,138,0.1); color: var(--green); border: 1px solid rgba(111,207,138,0.25); }
+
+  /* ── LIST GRID WITH WRONG BUTTON ── */
+  .list-item { display: flex; flex-direction: column; gap: 0; }
+  .list-btn-all { background: var(--bg2); border: 1px solid var(--border); border-radius: 8px 8px 0 0; padding: 9px 4px; color: var(--text); cursor: pointer; font-size: 0.75rem; font-family: 'Cormorant Garamond', serif; display: flex; flex-direction: column; align-items: center; gap: 2px; border-bottom: none; }
+  .list-btn-all:active { border-color: var(--gold); }
+  .list-btn-wrong { background: var(--bg2); border: 1px solid var(--border); border-top: 1px dashed var(--border2); border-radius: 0 0 8px 8px; padding: 5px 4px; color: var(--red); cursor: pointer; font-size: 0.62rem; font-family: 'DM Mono', monospace; text-align: center; width: 100%; }
+  .list-btn-wrong:active { background: rgba(224,112,112,0.08); }
+  .list-btn-wrong.none { color: var(--muted); cursor: default; pointer-events: none; }
+  .list-cnt { color: var(--muted); font-size: 0.62rem; font-family: 'DM Mono', monospace; }
+
   @keyframes fadeIn { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: translateY(0); } }
   @keyframes slideUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
   .anim-in { animation: slideUp 0.3s ease; }
@@ -202,10 +226,21 @@
       </div>
       <div class="mode-card" onclick="startSession('weak')" style="border-color:#e0707055">
         <div class="mode-icon">🎯</div>
-        <div class="mode-title" style="color:var(--red)">Weak Words</div>
+        <div class="mode-title" style="color:var(--red)">All Wrong Words</div>
         <div class="mode-desc" id="weak-desc">0 words</div>
       </div>
     </div>
+
+    <!-- Smart Practice -->
+    <div class="smart-card anim-in" onclick="startSession('smart')">
+      <div class="smart-header">
+        <span class="smart-icon">🧠</span>
+        <span class="smart-title">Smart Practice</span>
+      </div>
+      <div class="smart-desc">Every word you've ever got wrong — minus ones you've since nailed 3× in a row. This list shrinks as you improve.</div>
+      <div class="smart-pills" id="smart-pills"></div>
+    </div>
+
     <button class="list-toggle" onclick="toggleLists()" id="list-toggle-btn">Practice by List ▼</button>
     <div class="list-grid" id="list-grid" style="display:none"></div>
     <div class="bottom-row">
@@ -264,14 +299,14 @@
 </div>
 
 <script>
+
 // ═══════════════════════════════════════════
 // CREDENTIALS
 // ═══════════════════════════════════════════
-const CREDS = { "12": "Rohan" };
-// Storage handled via GitHub API — see STORAGE section below
+var CREDS = { "12": "Rohan" };
 
 // ═══════════════════════════════════════════
-// VOCAB DATA — All 12 lists
+// VOCAB DATA - All 12 lists
 // ═══════════════════════════════════════════
 const VOCAB = [
   // LIST 1
@@ -988,154 +1023,131 @@ const VOCAB = [
   {w:"THEOLOGY",m:"PERTAINING TO RELIGION",d:"The study of the nature of God and religious belief",e:"She earned a doctorate in comparative theology.",l:12,x:false},
 ];
 
-// Give each word an id
-VOCAB.forEach((v,i) => v.id = i);
+VOCAB.forEach(function(v, i) { v.id = i; });
 
 // ═══════════════════════════════════════════
 // STATE
 // ═══════════════════════════════════════════
-let currentUser = null;
-let stats = {}; // { wordId: { correct, wrong, streak } }
-let sessionCards = [];
-let cardIndex = 0;
-let flipped = false;
-let sessionResults = [];
-let sessionMode = null;
-let listsVisible = false;
-let statsFilter = 'all';
-let statsSort = 'wrong';
-let animating = false;
+var currentUser = null;
+var stats = {};
+var sessionCards = [];
+var cardIndex = 0;
+var flipped = false;
+var sessionResults = [];
+var sessionMode = null;
+var listsVisible = false;
+var statsFilter = 'all';
+var statsSort = 'wrong';
+var animating = false;
+var ghFileSHA = null;
 
 // ═══════════════════════════════════════════
-// STORAGE — GitHub API (cross-device) + localStorage (offline cache)
-// GitHub repo acts as cloud DB: stats.json stores all user stats
+// STORAGE - GitHub API + localStorage
 // ═══════════════════════════════════════════
-const GH_TOKEN  = ["ghp_LZxVhYsqk","ZbeDaWyS6k3j","AToBpAzEB17Z0z6"].join("");
-const GH_REPO   = "Rk42002/GRE_APp";
-const GH_FILE   = "stats.json";
-const GH_API    = `https://api.github.com/repos/${GH_REPO}/contents/${GH_FILE}`;
-let   ghFileSHA = null; // needed for updates
+var GH_TOKEN = ["ghp_LZxVhYsqk","ZbeDaWyS6k3j","AToBpAzEB17Z0z6"].join("");
+var GH_REPO = "Rk42002/GRE_APp";
+var GH_FILE = "stats.json";
+var GH_API = "https://api.github.com/repos/" + GH_REPO + "/contents/" + GH_FILE;
 
 function localKey() { return "gre_vault_local_" + currentUser; }
 
-// Save to localStorage immediately (instant), then push to GitHub async
 function saveLocalCache() {
   try { localStorage.setItem(localKey(), JSON.stringify(stats)); } catch(e) {}
 }
-
 function loadLocalCache() {
   try {
-    const v = localStorage.getItem(localKey());
+    var v = localStorage.getItem(localKey());
     if (v) { stats = JSON.parse(v); return true; }
   } catch(e) {}
   return false;
 }
 
-async function loadUserStats() {
-  // 1. Load local cache instantly so UI appears fast
-  loadLocalCache();
-
-  // 2. Fetch from GitHub (source of truth)
-  try {
-    const resp = await fetch(GH_API, {
-      headers: {
-        "Authorization": `token ${GH_TOKEN}`,
-        "Accept": "application/vnd.github.v3+json"
-      }
-    });
-    if (resp.ok) {
-      const data = await resp.json();
-      ghFileSHA = data.sha;
-      const allStats = JSON.parse(atob(data.content.replace(/\n/g,'')));
-      // Merge: cloud wins over local (cloud is source of truth)
-      stats = allStats[currentUser] || {};
-      saveLocalCache(); // update local cache with cloud data
-    }
-  } catch (e) {
-    console.warn("GitHub sync failed, using local cache:", e);
-  }
+function fetchWithTimeout(url, options, ms) {
+  ms = ms || 6000;
+  var controller = new AbortController();
+  var tid = setTimeout(function() { controller.abort(); }, ms);
+  return fetch(url, Object.assign({}, options, { signal: controller.signal }))
+    .then(function(r) { clearTimeout(tid); return r; })
+    .catch(function(e) { clearTimeout(tid); throw e; });
 }
 
-async function saveUserStats() {
-  // 1. Save locally immediately
+function loadUserStats() {
+  loadLocalCache();
+  return fetchWithTimeout(GH_API, {
+    headers: { "Authorization": "token " + GH_TOKEN, "Accept": "application/vnd.github.v3+json" }
+  }, 6000).then(function(resp) {
+    if (resp.ok) {
+      return resp.json().then(function(data) {
+        ghFileSHA = data.sha;
+        try {
+          var allStats = JSON.parse(atob(data.content.replace(/\n/g, '')));
+          stats = allStats[currentUser] || {};
+          saveLocalCache();
+        } catch(e) { console.warn("Parse error:", e); }
+      });
+    }
+  }).catch(function(e) {
+    console.warn("GitHub sync failed, using local:", e.message);
+  });
+}
+
+function saveUserStats() {
   saveLocalCache();
-
-  // 2. Push to GitHub in background
-  try {
-    // Read current file to get latest SHA + all users' stats
-    const readResp = await fetch(GH_API, {
-      headers: {
-        "Authorization": `token ${GH_TOKEN}`,
-        "Accept": "application/vnd.github.v3+json"
-      }
-    });
-    let allStats = {};
-    let sha = ghFileSHA;
-    if (readResp.ok) {
-      const data = await readResp.json();
-      sha = data.sha;
-      ghFileSHA = sha;
-      try { allStats = JSON.parse(atob(data.content.replace(/\n/g,''))); } catch(e) {}
-    }
-
-    // Merge current user's stats
-    allStats[currentUser] = stats;
-
-    // Write back
-    const content = btoa(JSON.stringify(allStats));
-    const writeResp = await fetch(GH_API, {
-      method: "PUT",
-      headers: {
-        "Authorization": `token ${GH_TOKEN}`,
-        "Accept": "application/vnd.github.v3+json",
-        "Content-Type": "application/json"
-      },
-      body: JSON.stringify({
-        message: `Update stats for ${currentUser}`,
-        content: content,
-        sha: sha
-      })
-    });
-    if (writeResp.ok) {
-      const d = await writeResp.json();
-      ghFileSHA = d.content.sha;
-    }
-  } catch (e) {
-    console.warn("GitHub save failed, data safe in localStorage:", e);
-  }
+  setTimeout(function() {
+    fetchWithTimeout(GH_API, {
+      headers: { "Authorization": "token " + GH_TOKEN, "Accept": "application/vnd.github.v3+json" }
+    }, 8000).then(function(resp) {
+      if (!resp.ok) return;
+      return resp.json().then(function(data) {
+        var sha = data.sha;
+        ghFileSHA = sha;
+        var allStats = {};
+        try { allStats = JSON.parse(atob(data.content.replace(/\n/g, ''))); } catch(e) {}
+        allStats[currentUser] = stats;
+        var encoded = btoa(unescape(encodeURIComponent(JSON.stringify(allStats))));
+        return fetchWithTimeout(GH_API, {
+          method: "PUT",
+          headers: { "Authorization": "token " + GH_TOKEN, "Accept": "application/vnd.github.v3+json", "Content-Type": "application/json" },
+          body: JSON.stringify({ message: "stats update", content: encoded, sha: sha })
+        }, 10000).then(function(wr) {
+          if (wr.ok) return wr.json().then(function(d) { ghFileSHA = d.content.sha; });
+        });
+      });
+    }).catch(function(e) { console.warn("GitHub bg-save failed:", e.message); });
+  }, 100);
 }
 
 // ═══════════════════════════════════════════
 // AUTH
 // ═══════════════════════════════════════════
 function doLogin() {
-  const u = document.getElementById('inp-user').value.trim();
-  const p = document.getElementById('inp-pass').value.trim();
-  const err = document.getElementById('login-err');
+  var u = document.getElementById('inp-user').value.trim();
+  var p = document.getElementById('inp-pass').value.trim();
+  var err = document.getElementById('login-err');
   if (!CREDS[u] || CREDS[u] !== p) {
     err.textContent = 'Invalid username or password.';
+    err.style.color = 'var(--red)';
     document.getElementById('inp-pass').value = '';
     return;
   }
-  err.textContent = '';
-  currentUser = u;
+  err.textContent = 'Syncing your progress...';
   err.style.color = 'var(--gold)';
-  err.textContent = '⟳ Syncing your progress...';
-  loadUserStats().then(() => {
+  currentUser = u;
+  loadUserStats().then(function() {
     err.textContent = '';
     err.style.color = 'var(--red)';
-    document.getElementById('login-screen').style.display = 'none';
+    document.getElementById('login-screen').classList.add('hidden');
     showScreen('home-screen');
     renderHome();
   });
 }
 
-document.getElementById('inp-pass').addEventListener('keydown', e => { if (e.key === 'Enter') doLogin(); });
-document.getElementById('inp-user').addEventListener('keydown', e => { if (e.key === 'Enter') document.getElementById('inp-pass').focus(); });
+document.getElementById('inp-pass').addEventListener('keydown', function(e) { if (e.key === 'Enter') doLogin(); });
+document.getElementById('inp-user').addEventListener('keydown', function(e) { if (e.key === 'Enter') document.getElementById('inp-pass').focus(); });
 
 function doLogout() {
   currentUser = null; stats = {};
-  document.getElementById('login-screen').style.display = 'flex';
+  document.getElementById('login-screen').classList.remove('hidden');
   showScreen(null);
   document.getElementById('inp-user').value = '';
   document.getElementById('inp-pass').value = '';
@@ -1145,8 +1157,26 @@ function doLogout() {
 // SCREEN MANAGEMENT
 // ═══════════════════════════════════════════
 function showScreen(id) {
-  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  var screens = document.querySelectorAll('.screen');
+  for (var i = 0; i < screens.length; i++) screens[i].classList.remove('active');
   if (id) document.getElementById(id).classList.add('active');
+}
+
+// ═══════════════════════════════════════════
+// HELPERS
+// ═══════════════════════════════════════════
+function h(tag, cls, inner) {
+  return '<' + tag + (cls ? ' class="' + cls + '"' : '') + '>' + (inner || '') + '</' + tag + '>';
+}
+
+function getEverWrong() {
+  return VOCAB.filter(function(v) { var s = stats[v.id]; return s && s.wrong > 0; });
+}
+function getSmartList() {
+  return VOCAB.filter(function(v) { var s = stats[v.id]; return s && s.wrong > 0 && s.streak < 3; });
+}
+function getListWrong(listNum) {
+  return VOCAB.filter(function(v) { return v.l === listNum && stats[v.id] && stats[v.id].wrong > 0 && stats[v.id].streak < 3; });
 }
 
 // ═══════════════════════════════════════════
@@ -1154,82 +1184,140 @@ function showScreen(id) {
 // ═══════════════════════════════════════════
 function renderHome() {
   showScreen('home-screen');
-  document.getElementById('home-user-tag').textContent = `logged in as ${currentUser}`;
-  const mastered = Object.values(stats).filter(s => s.streak >= 3).length;
-  const weak = Object.values(stats).filter(s => s.wrong > 0 && s.streak < 3).length;
-  document.getElementById('home-stats').innerHTML = `
-    <div class="stat-pill"><div class="stat-val" style="color:var(--gold2)">${VOCAB.length}</div><div class="stat-lbl">Total</div></div>
-    <div class="stat-pill"><div class="stat-val" style="color:var(--green)">${mastered}</div><div class="stat-lbl">Mastered</div></div>
-    <div class="stat-pill"><div class="stat-val" style="color:var(--red)">${weak}</div><div class="stat-lbl">Weak</div></div>
-  `;
-  document.getElementById('weak-desc').textContent = `${weak} words need attention`;
+  document.getElementById('home-user-tag').textContent = 'logged in as ' + currentUser;
+  var mastered = 0, allWrong = 0, smart = 0;
+  var keys = Object.keys(stats);
+  for (var i = 0; i < keys.length; i++) {
+    var s = stats[keys[i]];
+    if (s.streak >= 3) mastered++;
+    if (s.wrong > 0) allWrong++;
+    if (s.wrong > 0 && s.streak < 3) smart++;
+  }
+  var cleared = allWrong - smart;
+
+  document.getElementById('home-stats').innerHTML =
+    '<div class="stat-pill"><div class="stat-val" style="color:var(--gold2)">' + VOCAB.length + '</div><div class="stat-lbl">Total</div></div>' +
+    '<div class="stat-pill"><div class="stat-val" style="color:var(--green)">' + mastered + '</div><div class="stat-lbl">Mastered</div></div>' +
+    '<div class="stat-pill"><div class="stat-val" style="color:var(--red)">' + allWrong + '</div><div class="stat-lbl">Ever Wrong</div></div>';
+
+  document.getElementById('weak-desc').textContent = allWrong + ' words (ever missed)';
+
+  document.getElementById('smart-pills').innerHTML =
+    '<span class="smart-pill smart-pill-red">' + smart + ' still pending</span>' +
+    '<span class="smart-pill smart-pill-green">' + cleared + ' cleared (3x streak)</span>' +
+    '<span class="smart-pill smart-pill-purple">Total ever wrong: ' + allWrong + '</span>';
+
   // Build list grid
-  const lg = document.getElementById('list-grid');
+  var lg = document.getElementById('list-grid');
   lg.innerHTML = '';
-  for (let n=1; n<=12; n++) {
-    const cnt = VOCAB.filter(v => v.l === n).length;
-    const btn = document.createElement('button');
-    btn.className = 'list-btn';
-    btn.innerHTML = `List ${n}<span class="list-cnt">${cnt}w</span>`;
-    btn.onclick = () => startSession(n);
-    lg.appendChild(btn);
+  for (var n = 1; n <= 12; n++) {
+    var total = VOCAB.filter(function(v) { return v.l === n; }).length;
+    var wrongCnt = getListWrong(n).length;
+    var item = document.createElement('div');
+    item.className = 'list-item';
+
+    var allBtn = document.createElement('button');
+    allBtn.className = 'list-btn-all';
+    allBtn.innerHTML = 'List ' + n + '<span class="list-cnt">' + total + 'w</span>';
+    allBtn.setAttribute('data-list', n);
+    allBtn.onclick = function() { startSession(parseInt(this.getAttribute('data-list'))); };
+
+    var wrongBtn = document.createElement('button');
+    wrongBtn.className = 'list-btn-wrong' + (wrongCnt === 0 ? ' none' : '');
+    wrongBtn.textContent = wrongCnt > 0 ? 'x ' + wrongCnt + ' wrong' : 'clean';
+    wrongBtn.setAttribute('data-list', n);
+    if (wrongCnt > 0) {
+      wrongBtn.onclick = function() { startSession('list-wrong-' + this.getAttribute('data-list')); };
+    }
+
+    item.appendChild(allBtn);
+    item.appendChild(wrongBtn);
+    lg.appendChild(item);
   }
 }
 
 function toggleLists() {
   listsVisible = !listsVisible;
   document.getElementById('list-grid').style.display = listsVisible ? 'grid' : 'none';
-  document.getElementById('list-toggle-btn').textContent = `Practice by List ${listsVisible ? '▲' : '▼'}`;
+  document.getElementById('list-toggle-btn').textContent = 'Practice by List ' + (listsVisible ? String.fromCharCode(9650) : String.fromCharCode(9660));
 }
 
 // ═══════════════════════════════════════════
 // SESSION
 // ═══════════════════════════════════════════
 function weightedShuffle(cards) {
-  return [...cards].sort(() => Math.random() - 0.5).sort((a,b) => {
-    const sa = stats[a.id] || {correct:0,wrong:0,streak:0};
-    const sb = stats[b.id] || {correct:0,wrong:0,streak:0};
-    const wa = sa.wrong > 0 ? (sa.wrong*3 - sa.streak) : 0;
-    const wb = sb.wrong > 0 ? (sb.wrong*3 - sb.streak) : 0;
-    return (wb - wa) + (Math.random()*4 - 2);
+  var arr = cards.slice();
+  // Fisher-Yates shuffle first
+  for (var i = arr.length - 1; i > 0; i--) {
+    var j = Math.floor(Math.random() * (i + 1));
+    var tmp = arr[i]; arr[i] = arr[j]; arr[j] = tmp;
+  }
+  // Then sort by wrong-weight (wrong words bubble up)
+  arr.sort(function(a, b) {
+    var sa = stats[a.id] || { correct: 0, wrong: 0, streak: 0 };
+    var sb = stats[b.id] || { correct: 0, wrong: 0, streak: 0 };
+    var wa = sa.wrong > 0 ? (sa.wrong * 3 - sa.streak) : 0;
+    var wb = sb.wrong > 0 ? (sb.wrong * 3 - sb.streak) : 0;
+    return (wb - wa) + (Math.random() * 4 - 2);
   });
+  return arr;
 }
 
 function startSession(mode) {
-  let cards;
-  if (mode === 'weak') {
-    cards = VOCAB.filter(c => { const s=stats[c.id]; return s && s.wrong>0 && s.streak<3; });
-    if (!cards.length) { alert('No weak words yet — keep practicing!'); return; }
-  } else if (mode === 'all') {
-    cards = [...VOCAB];
+  var cards;
+  var badge = '';
+
+  if (mode === 'all') {
+    cards = VOCAB.slice();
+    badge = 'All Lists';
+  } else if (mode === 'weak') {
+    cards = getEverWrong();
+    if (!cards.length) { alert('No wrong words yet - keep practicing!'); return; }
+    badge = 'All Wrong';
+  } else if (mode === 'smart') {
+    cards = getSmartList();
+    if (!cards.length) { alert('Smart list is empty - you cleared everything!'); return; }
+    badge = 'Smart';
+  } else if (typeof mode === 'string' && mode.indexOf('list-wrong-') === 0) {
+    var listNum = parseInt(mode.split('-')[2]);
+    cards = getListWrong(listNum);
+    if (!cards.length) { alert('No wrong words in List ' + listNum); return; }
+    badge = 'L' + listNum + ' Wrong';
   } else {
-    cards = VOCAB.filter(c => c.l === mode);
+    cards = VOCAB.filter(function(c) { return c.l === mode; });
+    badge = 'List ' + mode;
   }
+
   sessionCards = weightedShuffle(cards);
-  cardIndex = 0; flipped = false; sessionResults = []; sessionMode = mode;
+  cardIndex = 0;
+  flipped = false;
+  sessionResults = [];
+  sessionMode = mode;
   showScreen('session-screen');
   renderCard();
 }
 
 function renderCard() {
   if (cardIndex >= sessionCards.length) { endSession(); return; }
-  const card = sessionCards[cardIndex];
-  const pct = (cardIndex / sessionCards.length) * 100;
+  var card = sessionCards[cardIndex];
+  var pct = (cardIndex / sessionCards.length) * 100;
   document.getElementById('prog-fill').style.width = pct + '%';
-  document.getElementById('prog-text').textContent = `${cardIndex}/${sessionCards.length}`;
-  document.getElementById('sess-list-badge').textContent = `List ${card.l}`;
-  const cs = stats[card.id] || {correct:0,wrong:0,streak:0};
-  document.getElementById('streak-row').textContent = cs.streak >= 1 ? `🔥 ${cs.streak} streak` : '';
+  document.getElementById('prog-text').textContent = cardIndex + '/' + sessionCards.length;
+  document.getElementById('sess-list-badge').textContent = 'List ' + card.l;
+  var cs = stats[card.id] || { correct: 0, wrong: 0, streak: 0 };
+  document.getElementById('streak-row').textContent = cs.streak >= 1 ? ('\uD83D\uDD25 ' + cs.streak + ' streak') : '';
   document.getElementById('action-row').style.display = 'none';
   flipped = false;
-  const fc = document.getElementById('flashcard');
-  fc.innerHTML = `
-    <div class="card-front">
-      ${card.x ? '<div class="ant-badge">ANTONYM</div>' : ''}
-      <div class="card-word">${card.w}</div>
-      <div class="card-hint">tap to reveal →</div>
-    </div>
-  `;
+
+  var fc = document.getElementById('flashcard');
+  fc.className = 'flashcard';
+  fc.innerHTML =
+    '<div class="card-front">' +
+    (card.x ? '<div class="ant-badge">ANTONYM</div>' : '') +
+    '<div class="card-word">' + card.w + '</div>' +
+    '<div class="card-hint">tap to reveal</div>' +
+    '</div>';
+
   updateMini();
 }
 
@@ -1237,37 +1325,39 @@ function flipCard() {
   if (flipped || animating) return;
   flipped = true;
   animating = true;
-  const fc = document.getElementById('flashcard');
+  var fc = document.getElementById('flashcard');
   fc.classList.add('flip-out');
-  setTimeout(() => {
-    const card = sessionCards[cardIndex];
+  setTimeout(function() {
+    var card = sessionCards[cardIndex];
     fc.classList.remove('flip-out');
-    fc.innerHTML = `
-      <div class="card-back">
-        <div class="master-theme">${card.x ? 'ANTONYM of ' + card.m : card.m}</div>
-        <div class="card-def">${card.d}</div>
-        <div class="card-ex">"${card.e}"</div>
-      </div>
-    `;
+    fc.innerHTML =
+      '<div class="card-back">' +
+      '<div class="master-theme">' + (card.x ? 'ANTONYM of ' + card.m : card.m) + '</div>' +
+      '<div class="card-def">' + card.d + '</div>' +
+      '<div class="card-ex">"' + card.e + '"</div>' +
+      '</div>';
     document.getElementById('action-row').style.display = 'grid';
     animating = false;
   }, 180);
 }
 
-async function markCard(correct) {
+function markCard(correct) {
   if (animating) return;
   animating = true;
-  const card = sessionCards[cardIndex];
-  const prev = stats[card.id] || {correct:0,wrong:0,streak:0};
-  stats[card.id] = correct
-    ? {correct: prev.correct+1, wrong: prev.wrong, streak: prev.streak+1}
-    : {correct: prev.correct, wrong: prev.wrong+1, streak: 0};
-  saveUserStats(); // fire and forget — local save is instant, GitHub async
-  sessionResults.push({card, correct});
-  const fc = document.getElementById('flashcard');
+  var card = sessionCards[cardIndex];
+  var prev = stats[card.id] || { correct: 0, wrong: 0, streak: 0 };
+  if (correct) {
+    stats[card.id] = { correct: prev.correct + 1, wrong: prev.wrong, streak: prev.streak + 1 };
+  } else {
+    stats[card.id] = { correct: prev.correct, wrong: prev.wrong + 1, streak: 0 };
+  }
+  saveUserStats();
+  sessionResults.push({ card: card, correct: correct });
+
+  var fc = document.getElementById('flashcard');
   fc.classList.add(correct ? 'slide-right' : 'slide-left');
-  setTimeout(() => {
-    fc.classList.remove('slide-right','slide-left');
+  setTimeout(function() {
+    fc.classList.remove('slide-right', 'slide-left');
     cardIndex++;
     animating = false;
     renderCard();
@@ -1275,13 +1365,14 @@ async function markCard(correct) {
 }
 
 function updateMini() {
-  const c = sessionResults.filter(r=>r.correct).length;
-  const w = sessionResults.filter(r=>!r.correct).length;
-  document.getElementById('session-mini').innerHTML = `
-    <span style="color:var(--green)">✓ ${c}</span>
-    <span style="color:var(--muted);font-size:0.65rem">this session</span>
-    <span style="color:var(--red)">✗ ${w}</span>
-  `;
+  var c = 0, w = 0;
+  for (var i = 0; i < sessionResults.length; i++) {
+    if (sessionResults[i].correct) c++; else w++;
+  }
+  document.getElementById('session-mini').innerHTML =
+    '<span style="color:var(--green)">' + c + '</span>' +
+    '<span style="color:var(--muted);font-size:0.65rem">this session</span>' +
+    '<span style="color:var(--red)">' + w + '</span>';
 }
 
 function stopSession() {
@@ -1296,53 +1387,79 @@ function endSession() { renderSummary(); }
 // ═══════════════════════════════════════════
 function renderSummary() {
   showScreen('summary-screen');
-  const correct = sessionResults.filter(r=>r.correct).length;
-  const total = sessionResults.length;
-  const pct = total > 0 ? Math.round((correct/total)*100) : 0;
-  const missed = sessionResults.filter(r=>!r.correct).map(r=>r.card);
-  const sc = document.getElementById('summary-content');
-  sc.innerHTML = `
-    <div style="text-align:center;padding:28px 0 16px">
-      <div class="score-circle"><div class="score-pct">${pct}%</div><div class="score-lbl">accuracy</div></div>
-      <div class="sum-title">Session Complete</div>
-      <div class="sum-meta">${correct}/${total} correct</div>
-    </div>
-    ${missed.length ? `
-    <div class="missed-box">
-      <div class="missed-ttl">Words to revisit (${missed.length})</div>
-      <div class="missed-scroll">
-        ${missed.map(c=>`
-          <div class="missed-item">
-            <span class="missed-word">${c.w}</span>
-            <span class="missed-theme">${c.x ? 'ANT: '+c.m : c.m}</span>
-          </div>`).join('')}
-      </div>
-    </div>` : '<div style="flex:1"></div>'}
-    <div class="sum-btns" style="margin-top:16px">
-      <button class="sum-btn" style="background:var(--bg2);border:1px solid var(--border)" onclick="showScreen('home-screen');renderHome()">⌂ Home</button>
-      <button class="sum-btn" style="background:rgba(201,168,76,0.1);border:1px solid rgba(201,168,76,0.4)" onclick="startSession(sessionMode)">↺ Again</button>
-      ${missed.length ? `<button class="sum-btn" style="background:rgba(224,112,112,0.1);border:1px solid rgba(224,112,112,0.4)" onclick="startSession('weak')">🎯 Weak</button>` : '<div></div>'}
-    </div>
-  `;
+  var correct = 0;
+  var missed = [];
+  for (var i = 0; i < sessionResults.length; i++) {
+    if (sessionResults[i].correct) correct++;
+    else missed.push(sessionResults[i].card);
+  }
+  var total = sessionResults.length;
+  var pct = total > 0 ? Math.round((correct / total) * 100) : 0;
+
+  var missedHtml = '';
+  if (missed.length) {
+    var items = '';
+    for (var j = 0; j < missed.length; j++) {
+      var c = missed[j];
+      items += '<div class="missed-item">' +
+        '<span class="missed-word">' + c.w + '</span>' +
+        '<span class="missed-theme">' + (c.x ? 'ANT: ' + c.m : c.m) + '</span>' +
+        '</div>';
+    }
+    missedHtml =
+      '<div class="missed-box">' +
+      '<div class="missed-ttl">Words to revisit (' + missed.length + ')</div>' +
+      '<div class="missed-scroll">' + items + '</div>' +
+      '</div>';
+  }
+
+  var btns =
+    '<div class="sum-btns" style="margin-top:16px">' +
+    '<button class="sum-btn" style="background:var(--bg2);border:1px solid var(--border)" onclick="showScreen(\'home-screen\');renderHome()">Home</button>' +
+    '<button class="sum-btn" style="background:rgba(201,168,76,0.1);border:1px solid rgba(201,168,76,0.4)" onclick="startSession(sessionMode)">Again</button>' +
+    (missed.length ? '<button class="sum-btn" style="background:rgba(196,168,240,0.1);border:1px solid rgba(196,168,240,0.35);color:#c4a8f0" onclick="startSession(\'smart\')">Smart</button>' : '<div></div>') +
+    '</div>';
+
+  document.getElementById('summary-content').innerHTML =
+    '<div style="text-align:center;padding:28px 0 16px">' +
+    '<div class="score-circle"><div class="score-pct">' + pct + '%</div><div class="score-lbl">accuracy</div></div>' +
+    '<div class="sum-title">Session Complete</div>' +
+    '<div class="sum-meta">' + correct + '/' + total + ' correct</div>' +
+    '</div>' +
+    (missedHtml || '<div style="flex:1"></div>') +
+    btns;
 }
 
 // ═══════════════════════════════════════════
-// STATS
+// STATS / SCORECARD
 // ═══════════════════════════════════════════
 function renderStats() {
   showScreen('stats-screen');
-  const touched = VOCAB.filter(v => { const s=stats[v.id]; return s && (s.correct>0||s.wrong>0); }).length;
-  document.getElementById('stats-meta').textContent = `${touched}/${VOCAB.length} attempted`;
-  // filters
-  const filters = ['all','weak','mastered','untouched'];
-  document.getElementById('filter-row').innerHTML = filters.map(f =>
-    `<button class="filter-btn ${statsFilter===f?'active':''}" onclick="setFilter('${f}')">${f.charAt(0).toUpperCase()+f.slice(1)}</button>`
-  ).join('');
-  // sorts
-  const sorts = ['wrong','correct','streak','alpha'];
-  document.getElementById('sort-row').innerHTML = `<span class="sort-lbl">Sort:</span>` + sorts.map(s =>
-    `<button class="sort-btn ${statsSort===s?'active':''}" onclick="setSort('${s}')">${s}</button>`
-  ).join('');
+  var touched = 0;
+  for (var k in stats) {
+    if (stats.hasOwnProperty(k)) {
+      var s = stats[k];
+      if (s.correct > 0 || s.wrong > 0) touched++;
+    }
+  }
+  document.getElementById('stats-meta').textContent = touched + '/' + VOCAB.length + ' attempted';
+
+  var filters = ['all', 'weak', 'mastered', 'untouched'];
+  var filterHtml = '';
+  for (var i = 0; i < filters.length; i++) {
+    var f = filters[i];
+    filterHtml += '<button class="filter-btn' + (statsFilter === f ? ' active' : '') + '" onclick="setFilter(\'' + f + '\')">' + f.charAt(0).toUpperCase() + f.slice(1) + '</button>';
+  }
+  document.getElementById('filter-row').innerHTML = filterHtml;
+
+  var sorts = ['wrong', 'correct', 'streak', 'alpha'];
+  var sortHtml = '<span class="sort-lbl">Sort:</span>';
+  for (var j = 0; j < sorts.length; j++) {
+    var sv = sorts[j];
+    sortHtml += '<button class="sort-btn' + (statsSort === sv ? ' active' : '') + '" onclick="setSort(\'' + sv + '\')">' + sv + '</button>';
+  }
+  document.getElementById('sort-row').innerHTML = sortHtml;
+
   renderStatsTable();
 }
 
@@ -1350,32 +1467,43 @@ function setFilter(f) { statsFilter = f; renderStats(); }
 function setSort(s) { statsSort = s; renderStats(); }
 
 function renderStatsTable() {
-  let rows = VOCAB.map(v => ({...v, s: stats[v.id]||{correct:0,wrong:0,streak:0}}));
-  if (statsFilter==='weak') rows = rows.filter(r => r.s.wrong>0 && r.s.streak<3);
-  if (statsFilter==='mastered') rows = rows.filter(r => r.s.streak>=3);
-  if (statsFilter==='untouched') rows = rows.filter(r => r.s.correct===0 && r.s.wrong===0);
-  rows.sort((a,b) => {
-    if (statsSort==='wrong') return b.s.wrong - a.s.wrong;
-    if (statsSort==='correct') return b.s.correct - a.s.correct;
-    if (statsSort==='streak') return b.s.streak - a.s.streak;
+  var rows = [];
+  for (var i = 0; i < VOCAB.length; i++) {
+    var v = VOCAB[i];
+    var s = stats[v.id] || { correct: 0, wrong: 0, streak: 0 };
+    rows.push({ w: v.w, m: v.m, x: v.x, id: v.id, s: s });
+  }
+
+  if (statsFilter === 'weak') rows = rows.filter(function(r) { return r.s.wrong > 0 && r.s.streak < 3; });
+  if (statsFilter === 'mastered') rows = rows.filter(function(r) { return r.s.streak >= 3; });
+  if (statsFilter === 'untouched') rows = rows.filter(function(r) { return r.s.correct === 0 && r.s.wrong === 0; });
+
+  rows.sort(function(a, b) {
+    if (statsSort === 'wrong') return b.s.wrong - a.s.wrong;
+    if (statsSort === 'correct') return b.s.correct - a.s.correct;
+    if (statsSort === 'streak') return b.s.streak - a.s.streak;
     return a.w.localeCompare(b.w);
   });
-  document.getElementById('stats-table').innerHTML = rows.map((r,i) => `
-    <div class="t-row">
-      <div class="t-word">
-        ${r.w}
-        ${r.x ? '<span class="ant-tag">ANT</span>' : ''}
-        ${r.s.streak>=3 ? '<span class="star-tag">⭐</span>' : ''}
-      </div>
-      <div class="t-theme">${r.m}</div>
-      <div class="t-nums">
-        <span style="color:var(--green)">✓${r.s.correct}</span>
-        <span style="color:var(--red)">✗${r.s.wrong}</span>
-        <span style="color:var(--gold)">🔥${r.s.streak}</span>
-      </div>
-    </div>
-  `).join('');
+
+  var html = '';
+  for (var j = 0; j < rows.length; j++) {
+    var r = rows[j];
+    html += '<div class="t-row">' +
+      '<div class="t-word">' + r.w +
+        (r.x ? ' <span class="ant-tag">ANT</span>' : '') +
+        (r.s.streak >= 3 ? ' <span class="star-tag">\u2B50</span>' : '') +
+      '</div>' +
+      '<div class="t-theme">' + r.m + '</div>' +
+      '<div class="t-nums">' +
+        '<span style="color:var(--green)">' + r.s.correct + '</span>' +
+        '<span style="color:var(--red)">' + r.s.wrong + '</span>' +
+        '<span style="color:var(--gold)">' + r.s.streak + '</span>' +
+      '</div>' +
+      '</div>';
+  }
+  document.getElementById('stats-table').innerHTML = html;
 }
+
 </script>
 </body>
 </html>
