@@ -1055,14 +1055,14 @@ function localKey() { return "gre_vault_local_" + currentUser; }
 
 // Save to localStorage immediately (instant), then push to GitHub async
 function saveLocalCache() {
-  try { localStorage.setItem(localKey(), JSON.stringify(stats)); } catch {}
+  try { localStorage.setItem(localKey(), JSON.stringify(stats)); } catch(e) {}
 }
 
 function loadLocalCache() {
   try {
     const v = localStorage.getItem(localKey());
     if (v) { stats = JSON.parse(v); return true; }
-  } catch {}
+  } catch(e) {}
   return false;
 }
 
@@ -1131,7 +1131,7 @@ async function saveUserStats() {
         const data = await readResp.json();
         sha = data.sha;
         ghFileSHA = sha;
-        try { allStats = JSON.parse(atob(data.content.replace(/\n/g,''))); } catch {}
+        try { allStats = JSON.parse(atob(data.content.replace(/\n/g,''))); } catch(e) {}
       }
 
       // Merge this user's stats in
