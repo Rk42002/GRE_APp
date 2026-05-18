@@ -116,6 +116,42 @@
   .qa-prompt { text-align: center; color: var(--muted2); font-size: 0.85rem; letter-spacing: 0.08em; margin: 4px 0 8px; font-family: 'DM Mono', monospace; }
   .unflag-btn { background: transparent; border: 1px solid rgba(224,112,112,0.35); border-radius: 4px; color: var(--red); cursor: pointer; padding: 2px 8px; font-size: 0.7rem; font-family: 'DM Mono', monospace; margin-left: 8px; }
   .unflag-btn:active { background: rgba(224,112,112,0.1); }
+
+  /* ── CHEATSHEET ── */
+  .cheat-card {
+    background: linear-gradient(145deg, #15131f, #0e0c18);
+    border: 1px solid rgba(155,126,224,0.35);
+    border-radius: 20px;
+    flex: 1; min-height: 280px;
+    display: flex; flex-direction: column;
+    padding: 22px 18px 18px; gap: 12px; overflow: hidden;
+    box-shadow: 0 12px 40px rgba(0,0,0,0.7), inset 0 1px 0 rgba(255,255,255,0.04);
+    margin-bottom: 14px;
+  }
+  .cheat-hdr-label { font-size: 0.6rem; color: var(--muted); letter-spacing: 0.16em; text-transform: uppercase; font-family: 'DM Mono', monospace; text-align: center; }
+  .cheat-group-ttl { font-size: 1.45rem; font-weight: 700; color: #b298f0; text-align: center; letter-spacing: 0.04em; padding: 10px 14px; background: rgba(155,126,224,0.08); border: 1px solid rgba(155,126,224,0.25); border-radius: 10px; line-height: 1.2; word-break: break-word; }
+  .cheat-count { font-size: 0.65rem; color: var(--muted2); font-family: 'DM Mono', monospace; text-align: center; letter-spacing: 0.1em; }
+  .cheat-scroll { flex: 1; overflow-y: auto; display: flex; flex-direction: column; gap: 10px; padding-right: 4px; }
+  .cheat-word-row { background: var(--bg3); border: 1px solid var(--border2); border-radius: 10px; padding: 10px 12px; display: flex; flex-direction: column; gap: 4px; }
+  .cheat-word-head { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+  .cheat-word-w { font-size: 0.95rem; font-weight: 700; color: var(--gold2); letter-spacing: 0.04em; }
+  .cheat-word-ant { background: rgba(224,112,112,0.12); border: 1px solid rgba(224,112,112,0.35); border-radius: 3px; padding: 1px 6px; font-size: 0.55rem; color: var(--red); letter-spacing: 0.1em; font-family: 'DM Mono', monospace; }
+  .cheat-word-list { background: rgba(201,168,76,0.08); border: 1px solid rgba(201,168,76,0.25); border-radius: 3px; padding: 1px 6px; font-size: 0.55rem; color: var(--gold); letter-spacing: 0.08em; font-family: 'DM Mono', monospace; margin-left: auto; }
+  .cheat-word-d { font-size: 0.78rem; color: var(--fg); line-height: 1.4; }
+  .cheat-word-e { font-size: 0.72rem; color: var(--muted2); font-style: italic; line-height: 1.4; }
+
+  /* ── STORY PROMPTS ── */
+  .story-list { display: flex; flex-direction: column; gap: 14px; padding-bottom: 24px; }
+  .story-card { background: var(--bg2); border: 1px solid var(--border2); border-radius: 14px; padding: 14px; display: flex; flex-direction: column; gap: 10px; }
+  .story-card-hdr { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
+  .story-card-ttl { font-size: 0.85rem; font-weight: 700; color: #e0b870; letter-spacing: 0.04em; font-family: 'DM Mono', monospace; }
+  .story-copy-btn { background: rgba(224,168,92,0.12); border: 1px solid rgba(224,168,92,0.4); border-radius: 6px; color: #e0b870; cursor: pointer; padding: 5px 12px; font-size: 0.7rem; font-family: 'DM Mono', monospace; letter-spacing: 0.06em; transition: background 0.15s; }
+  .story-copy-btn:active { background: rgba(224,168,92,0.25); }
+  .story-copy-btn.copied { background: rgba(111,207,138,0.15); border-color: rgba(111,207,138,0.45); color: var(--green); }
+  .story-words { display: flex; flex-wrap: wrap; gap: 5px; }
+  .story-chip { background: var(--bg3); border: 1px solid var(--border2); border-radius: 4px; padding: 2px 8px; font-size: 0.65rem; color: var(--gold2); font-family: 'DM Mono', monospace; letter-spacing: 0.04em; }
+  .story-prompt-box { background: #08070d; border: 1px solid var(--border); border-radius: 8px; padding: 10px 12px; font-family: 'DM Mono', monospace; font-size: 0.7rem; color: var(--muted2); line-height: 1.5; max-height: 140px; overflow-y: auto; white-space: pre-wrap; }
+  .story-empty { text-align: center; color: var(--muted); font-family: 'DM Mono', monospace; font-size: 0.8rem; padding: 40px 20px; line-height: 1.6; }
   .card-front { display: flex; flex-direction: column; align-items: center; gap: 18px; width: 100%; }
   .card-word { font-size: clamp(1.8rem, 6vw, 2.4rem); font-weight: 700; text-align: center; color: var(--gold2); letter-spacing: 0.04em; }
   .card-hint { font-size: 0.65rem; color: var(--border2); letter-spacing: 0.14em; text-transform: uppercase; font-family: 'DM Mono', monospace; }
@@ -223,6 +259,16 @@
         <div class="mode-title" style="color:var(--red)">Weak Words</div>
         <div class="mode-desc" id="weak-desc">0 words</div>
       </div>
+      <div class="mode-card" onclick="startCheatsheet()" style="border-color:#9b7ee055">
+        <div class="mode-icon">📋</div>
+        <div class="mode-title" style="color:#b298f0">Group Cheatsheet</div>
+        <div class="mode-desc" id="cheat-desc">0 weak groups</div>
+      </div>
+      <div class="mode-card" onclick="startStoryPrompts()" style="border-color:#e0a85c55">
+        <div class="mode-icon">📖</div>
+        <div class="mode-title" style="color:#e0b870">Story Prompts</div>
+        <div class="mode-desc" id="story-desc">0 prompts ready</div>
+      </div>
       <div class="mode-card" onclick="startQA()" style="border-color:#6fcf8a55; grid-column:1/-1">
         <div class="mode-icon">🔍</div>
         <div class="mode-title" style="color:var(--green)">Mapping QA</div>
@@ -315,6 +361,42 @@
     </div>
     <div style="font-size:0.7rem;color:var(--muted);font-family:'DM Mono',monospace;text-align:center;padding:4px 0 12px" id="qa-flags-meta"></div>
     <div class="table-wrap" id="qa-flags-table"></div>
+  </div>
+</div>
+
+<!-- ── CHEATSHEET (Weak words by group) ── -->
+<div class="screen" id="cheat-screen">
+  <div class="session-wrap">
+    <div class="session-top">
+      <button class="stop-btn" onclick="showScreen('home-screen'); renderHome()">✕ Close</button>
+      <div class="prog-wrap">
+        <div class="prog-track"><div class="prog-fill" id="cheat-prog-fill" style="width:0%"></div></div>
+        <div class="prog-text" id="cheat-prog-text">0/0</div>
+      </div>
+      <div class="list-badge" id="cheat-list-badge">—</div>
+    </div>
+    <div class="cheat-card" id="cheat-card"></div>
+    <div class="action-row" style="display:grid; grid-template-columns:1fr 1fr">
+      <button class="act-btn" onclick="prevCheatsheet()" style="border-color:var(--border2); color:var(--muted)">
+        <span class="act-icon">‹</span><span>Prev</span>
+      </button>
+      <button class="act-btn right-btn" onclick="nextCheatsheet()">
+        <span class="act-icon">›</span><span>Next</span>
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- ── STORY PROMPTS ── -->
+<div class="screen" id="story-screen">
+  <div class="stats-wrap">
+    <div class="stats-hdr">
+      <button class="back-btn" onclick="showScreen('home-screen'); renderHome()">← Back</button>
+      <div class="stats-ttl">Story Prompts</div>
+      <button class="back-btn" onclick="copyAllStoryPrompts()" style="color:var(--gold)">Copy all</button>
+    </div>
+    <div style="font-size:0.7rem;color:var(--muted);font-family:'DM Mono',monospace;text-align:center;padding:4px 0 12px" id="story-meta"></div>
+    <div class="story-list" id="story-list"></div>
   </div>
 </div>
 
@@ -2206,6 +2288,10 @@ let qaCards = [];
 let qaIndex = 0;
 let qaResults = [];
 let qaFlags = []; // array of word IDs flagged as wrong mapping
+let cheatGroups = []; // [{group, words: [card, ...]}, ...]
+let cheatIndex = 0;
+let storyChunks = []; // [{words: [card, ...], prompt: string}, ...]
+const STORY_CHUNK_SIZE = 15;
 
 // ═══════════════════════════════════════════
 // STORAGE — GitHub API (cross-device) + localStorage (offline cache)
@@ -2364,6 +2450,21 @@ function renderHome() {
     <div class="stat-pill"><div class="stat-val" style="color:var(--red)">${weak}</div><div class="stat-lbl">Weak</div></div>
   `;
   document.getElementById('weak-desc').textContent = `${weak} words need attention`;
+  const weakWords = getWeakWords();
+  const groupCount = new Set(weakWords.map(w => w.m)).size;
+  const cheatDesc = document.getElementById('cheat-desc');
+  if (cheatDesc) {
+    cheatDesc.textContent = groupCount
+      ? `${groupCount} group${groupCount === 1 ? '' : 's'} · ${weakWords.length} weak word${weakWords.length === 1 ? '' : 's'}`
+      : 'No weak words yet';
+  }
+  const storyDesc = document.getElementById('story-desc');
+  if (storyDesc) {
+    const promptCount = Math.ceil(weakWords.length / STORY_CHUNK_SIZE);
+    storyDesc.textContent = promptCount
+      ? `${promptCount} prompt${promptCount === 1 ? '' : 's'} ready (~${STORY_CHUNK_SIZE}/story)`
+      : 'No weak words yet';
+  }
   loadQAFlags();
   const qaDesc = document.getElementById('qa-desc');
   if (qaDesc) {
@@ -2652,6 +2753,220 @@ function clearQAFlags() {
   qaFlags = [];
   saveQAFlags();
   showQAFlags();
+}
+
+// ═══════════════════════════════════════════
+// WEAK-WORD CHEATSHEET & STORY PROMPTS
+// ═══════════════════════════════════════════
+function getWeakWords() {
+  return VOCAB.filter(v => {
+    const s = stats[v.id];
+    return s && s.wrong > 0 && s.streak < 3;
+  });
+}
+
+function buildCheatGroups() {
+  const weak = getWeakWords();
+  const map = new Map();
+  weak.forEach(w => {
+    if (!map.has(w.m)) map.set(w.m, []);
+    map.get(w.m).push(w);
+  });
+  return Array.from(map.entries())
+    .map(([group, words]) => ({
+      group,
+      words: words.sort((a, b) => a.w.localeCompare(b.w))
+    }))
+    .sort((a, b) => b.words.length - a.words.length);
+}
+
+function startCheatsheet() {
+  cheatGroups = buildCheatGroups();
+  cheatIndex = 0;
+  if (cheatGroups.length === 0) {
+    alert('No weak words yet! Play a session and mark some words "Missed" first.');
+    return;
+  }
+  showScreen('cheat-screen');
+  renderCheatCard();
+}
+
+function renderCheatCard() {
+  const total = cheatGroups.length;
+  if (total === 0) return;
+  const g = cheatGroups[cheatIndex];
+  document.getElementById('cheat-prog-text').textContent = `${cheatIndex + 1}/${total}`;
+  document.getElementById('cheat-prog-fill').style.width = `${((cheatIndex + 1) / total) * 100}%`;
+  const lists = [...new Set(g.words.map(w => w.l))].sort((a, b) => a - b);
+  document.getElementById('cheat-list-badge').textContent =
+    lists.length === 1 ? `LIST ${lists[0]}` : `LISTS ${lists.join(',')}`;
+  document.getElementById('cheat-card').innerHTML = `
+    <div class="cheat-hdr-label">Group</div>
+    <div class="cheat-group-ttl">${escapeHtml(g.group)}</div>
+    <div class="cheat-count">${g.words.length} weak word${g.words.length === 1 ? '' : 's'}</div>
+    <div class="cheat-scroll">
+      ${g.words.map(w => `
+        <div class="cheat-word-row">
+          <div class="cheat-word-head">
+            <span class="cheat-word-w">${escapeHtml(w.w)}</span>
+            ${w.x ? '<span class="cheat-word-ant">ANTONYM</span>' : ''}
+            <span class="cheat-word-list">L${w.l}</span>
+          </div>
+          <div class="cheat-word-d">${escapeHtml(w.d)}</div>
+          <div class="cheat-word-e">"${escapeHtml(w.e)}"</div>
+        </div>
+      `).join('')}
+    </div>
+  `;
+}
+
+function nextCheatsheet() {
+  if (cheatIndex < cheatGroups.length - 1) {
+    cheatIndex++;
+    renderCheatCard();
+  } else {
+    if (confirm('You\'ve reached the last group. Start over?')) {
+      cheatIndex = 0;
+      renderCheatCard();
+    }
+  }
+}
+
+function prevCheatsheet() {
+  if (cheatIndex > 0) {
+    cheatIndex--;
+    renderCheatCard();
+  }
+}
+
+function escapeHtml(str) {
+  return String(str).replace(/[&<>"']/g, c => ({
+    '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'
+  }[c]));
+}
+
+function buildStoryChunks() {
+  const weak = getWeakWords();
+  if (weak.length === 0) return [];
+  // Group by m so a story can lean into related clusters, then flatten into chunks
+  const byGroup = new Map();
+  weak.forEach(w => {
+    if (!byGroup.has(w.m)) byGroup.set(w.m, []);
+    byGroup.get(w.m).push(w);
+  });
+  // Flatten group-by-group to keep related words adjacent
+  const flat = [];
+  Array.from(byGroup.entries())
+    .sort((a, b) => b[1].length - a[1].length)
+    .forEach(([_, words]) => flat.push(...words.sort((a, b) => a.w.localeCompare(b.w))));
+  const chunks = [];
+  for (let i = 0; i < flat.length; i += STORY_CHUNK_SIZE) {
+    const slice = flat.slice(i, i + STORY_CHUNK_SIZE);
+    chunks.push({ words: slice, prompt: buildStoryPrompt(slice, chunks.length + 1) });
+  }
+  return chunks;
+}
+
+function buildStoryPrompt(words, idx) {
+  const groups = [...new Set(words.map(w => w.m))];
+  const wordLines = words.map(w =>
+    `- ${w.w} (${w.m}${w.x ? ', ANTONYM' : ''}): ${w.d}`
+  ).join('\n');
+  const groupSummary = groups.length === 1
+    ? `the theme "${groups[0]}"`
+    : `${groups.length} GRE themes (${groups.map(g => `"${g}"`).join(', ')})`;
+  return `Write a short, vivid, memorable story (200-300 words) that naturally uses EVERY word from the list below at least once. The story should help me remember the words, so:
+
+1. Use each word in a way that clearly illustrates its meaning — context should make the definition obvious.
+2. Lean into ${groupSummary} so the words feel thematically connected.
+3. Bold or capitalize each target word the first time it appears.
+4. Keep characters and plot simple, but emotionally hooky.
+5. If a word is marked ANTONYM, contrast it with the other words in its group.
+
+Words to include (with their meanings):
+${wordLines}
+
+After the story, give me a one-line "memory hook" tying the story back to each word.
+
+(Story batch ${idx})`;
+}
+
+function startStoryPrompts() {
+  storyChunks = buildStoryChunks();
+  showScreen('story-screen');
+  renderStoryList();
+}
+
+function renderStoryList() {
+  const meta = document.getElementById('story-meta');
+  const list = document.getElementById('story-list');
+  if (storyChunks.length === 0) {
+    meta.textContent = '';
+    list.innerHTML = `<div class="story-empty">No weak words yet.<br>Play a session and mark some words "Missed" to generate story prompts.</div>`;
+    return;
+  }
+  const totalWords = storyChunks.reduce((n, c) => n + c.words.length, 0);
+  meta.textContent = `${storyChunks.length} prompt${storyChunks.length === 1 ? '' : 's'} · ${totalWords} weak word${totalWords === 1 ? '' : 's'} · ~${STORY_CHUNK_SIZE}/story`;
+  list.innerHTML = storyChunks.map((c, i) => `
+    <div class="story-card">
+      <div class="story-card-hdr">
+        <div class="story-card-ttl">STORY ${i + 1} · ${c.words.length} words</div>
+        <button class="story-copy-btn" id="copy-btn-${i}" onclick="copyStoryPrompt(${i})">⧉ Copy prompt</button>
+      </div>
+      <div class="story-words">
+        ${c.words.map(w => `<span class="story-chip">${escapeHtml(w.w)}</span>`).join('')}
+      </div>
+      <div class="story-prompt-box">${escapeHtml(c.prompt)}</div>
+    </div>
+  `).join('');
+}
+
+function copyStoryPrompt(idx) {
+  const chunk = storyChunks[idx];
+  if (!chunk) return;
+  const btn = document.getElementById(`copy-btn-${idx}`);
+  copyToClipboard(chunk.prompt).then(() => {
+    if (btn) {
+      const original = btn.textContent;
+      btn.textContent = '✓ Copied';
+      btn.classList.add('copied');
+      setTimeout(() => {
+        btn.textContent = original;
+        btn.classList.remove('copied');
+      }, 1600);
+    }
+  });
+}
+
+function copyAllStoryPrompts() {
+  if (storyChunks.length === 0) {
+    alert('Nothing to copy.');
+    return;
+  }
+  const combined = storyChunks
+    .map((c, i) => `=== STORY ${i + 1} of ${storyChunks.length} ===\n\n${c.prompt}`)
+    .join('\n\n\n');
+  copyToClipboard(combined).then(() => {
+    alert(`Copied all ${storyChunks.length} prompts to clipboard.`);
+  });
+}
+
+function copyToClipboard(text) {
+  if (navigator.clipboard && navigator.clipboard.writeText) {
+    return navigator.clipboard.writeText(text).catch(() => fallbackCopy(text));
+  }
+  return Promise.resolve(fallbackCopy(text));
+}
+
+function fallbackCopy(text) {
+  const ta = document.createElement('textarea');
+  ta.value = text;
+  ta.style.position = 'fixed';
+  ta.style.opacity = '0';
+  document.body.appendChild(ta);
+  ta.select();
+  try { document.execCommand('copy'); } catch (e) {}
+  document.body.removeChild(ta);
 }
 
 function renderStatsTable() {
